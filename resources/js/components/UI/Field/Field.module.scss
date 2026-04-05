@@ -1,0 +1,18 @@
+.input {
+    outline: none;
+    border: 1px #D4D4DD solid;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-family: inherit;
+    font-size: 16px;
+    color: #242424;
+
+    &::placeholder {
+        color: #7C8092;
+    }
+
+    &:focus-within {
+        border-color: var(--color-purple);
+    }
+
+}
