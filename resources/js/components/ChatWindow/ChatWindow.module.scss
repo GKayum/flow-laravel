@@ -1,0 +1,96 @@
+.not_msgs_block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+    height: 100%;
+    padding-inline: 10px;
+}
+
+.main {
+    box-sizing: border-box;
+    background-color: #F5F5F7;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+
+    &__header {
+        // box-shadow: 0px 8px 12px -10px rgba($color: #191816, $alpha: .15);
+        box-shadow: 0 0 12px 0 rgba($color: #191816, $alpha: .15);
+        overflow: hidden;
+        background-color: #fff;
+        max-height: 80px;
+        height: 100%;
+        padding: 0 1.8rem;
+
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        .user_icon {
+            height: 48px;
+            width: 48px;
+        }
+
+        .info {
+            display: flex;
+            flex-direction: column;
+
+            .name {
+                font-weight: 500;
+                font-size: 22px;
+                line-height: 1;
+            }
+            .messages {
+                font-size: 14px;
+            }
+        }
+
+        .close_btn {
+            margin-left: auto;
+            border: none;
+            background-color: transparent;
+            padding: 0;
+            cursor: pointer;
+
+            svg {
+                height: 48px;
+                width: 48px;
+                stroke: #30323E;
+            }
+        }
+    }
+
+    &__body {
+        flex-grow: 1;
+        flex-shrink: 1;
+        flex-basis: 0%;
+        overflow: auto;
+        height: 100%;
+
+        scrollbar-width: thin;
+
+        .loader_box {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            svg {
+                width: 35px;
+                height: 35px;
+            }
+        }
+    }
+
+    &__footer {
+        padding: 15px;
+
+        background-color: #fff;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+}

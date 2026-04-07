@@ -1,0 +1,18 @@
+.userImg {
+    border-radius: 100%;
+    object-fit: cover;
+}
+
+.userSpan {
+    // width: 2rem /* 2rem = 32px */;
+    // height: 2rem /* 2rem = 32px */;
+
+    background-color: var(--color-grey-2);
+    border-radius: 100%;
+    font-weight: 600;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
