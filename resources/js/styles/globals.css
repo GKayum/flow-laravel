@@ -4,7 +4,7 @@
   font-weight: 400;
 
   color: #242424;
-  background-color: #242424;
+  /* background-color: #242424; */
   background-color: #fff;
 
   font-synthesis: none;
@@ -33,6 +33,9 @@ button {
   padding: 0;
   background: none;
   border: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 h1 {

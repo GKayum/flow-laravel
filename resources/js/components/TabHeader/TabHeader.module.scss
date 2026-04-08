@@ -1,0 +1,29 @@
+.mainNav {
+    max-height: 65px;
+    height: 100%;
+
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    gap: 12px;
+
+    &__closeBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 8px;
+        border-radius: 100%;
+        transition: background-color .1s ease-in-out;
+        cursor: pointer;
+        
+        &:hover {
+            background-color: var(--color-grey-3);
+        }
+    }
+
+    &__text {
+        font-size: 17px;
+        font-weight: 600;
+    }
+}

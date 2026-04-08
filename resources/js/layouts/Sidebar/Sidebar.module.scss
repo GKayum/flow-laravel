@@ -1,0 +1,13 @@
+.main {
+    position: absolute;
+    width: stretch;
+    height: 100%;
+    padding: 0 1.2rem;
+    background-color: #fff;
+
+    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    .body {
+        margin: 1.2rem 0;
+    }
+}

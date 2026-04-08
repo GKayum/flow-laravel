@@ -1,6 +1,6 @@
 import styles from "./Avatar.module.scss"
 
-export default function Avatar({ user, size = '2rem' }) {
+export default function Avatar({ user, size = '2rem', fontSize = '1rem' }) {
     const avatar = user.avatar || null;
 
     return (
@@ -15,7 +15,7 @@ export default function Avatar({ user, size = '2rem' }) {
             ) : (
                 <span
                     className={styles.userSpan}
-                    style={{width: size, height: size}}
+                    style={{width: size, height: size, fontSize: fontSize}}
                 >
                     {user.name[0].toUpperCase() ?? 'U'}
                 </span>
