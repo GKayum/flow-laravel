@@ -42,8 +42,11 @@ class UserController extends Controller
         $validated = $validator->validated();
 
         if ($request->hasFile('avatar')) {
-            $filename = Str::uuid() . '.' . $request->file('avatar')->getClientOriginalExtension();
-            $path = $request->file('avatar')->storeAs('avatars', $filename, 'public');
+            if (!empty($user->avatar)) {
+                $relativePath = Str::replaceFirst('/storage/', '', $user->avatar);
+                Storage::disk('public')->delete($relativePath);
+            }
+            $path = Storage::disk('public')->putFile('avatars', $request->file('avatar'));
             $validated['avatar'] = Storage::url($path);
         }
 
