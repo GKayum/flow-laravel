@@ -6,13 +6,19 @@
     font-family: inherit;
     font-size: 16px;
     color: #242424;
+    transition: border .1s ease-in-out;
+
+    width: stretch;
 
     &::placeholder {
         color: #7C8092;
     }
 
+    &:hover {
+        border: 1px var(--color-grey-1) solid;
+    }
+
     &:focus-within {
         border-color: var(--color-purple);
     }
-
 }

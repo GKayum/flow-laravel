@@ -1,0 +1,85 @@
+.avatarCropperContainer {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &__cropper {
+        position: relative;
+        border-radius: 50%;
+        overflow: hidden;
+        outline: 1px var(--color-grey-2) solid;
+
+        width: 7.5rem /* 7.5rem = 120px */;
+        height: 7.5rem /* 7.5rem = 120px */;
+    }
+
+    .input {
+        display: none;
+    }
+
+    .button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: rgba($color: #000000, $alpha: 0.3);
+        cursor: pointer;
+
+        &:hover {
+            .icon {
+                scale: 1.2;
+            }
+        }
+
+        .icon {
+            width: 56px;
+            height: 56px;
+            color: #fff;
+            transition: all .2s ease-in-out;
+        }
+    }
+
+    .actions {
+        position: absolute;
+        bottom: 0;
+        left: 100%;
+
+        display: flex;
+        gap: 5px;
+
+        &__button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+            padding: .4rem;
+            cursor: pointer;
+            transition: opacity .1s ease-in-out;
+
+            &.confirm {
+                background-color: var(--color-purple);
+            }
+            &.cancel {
+                background-color: var(--color-red-1);
+            }
+
+            &:hover {
+                opacity: .8;
+            }
+
+            .icon {
+                width: 18px;
+                height: 18px;
+                stroke-width: 3px;
+                color: #fff;
+            }
+        }
+    }
+}

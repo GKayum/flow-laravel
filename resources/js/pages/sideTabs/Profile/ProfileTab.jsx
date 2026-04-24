@@ -6,7 +6,7 @@ import { Pen } from "lucide-react"
 import { Trash } from "lucide-react"
 import { Calendar1 } from "lucide-react"
 
-export default function ProfileTab({ setActiveTab, onSidebarClick }) {
+export default function ProfileTab({ setActiveTab }) {
     const { user } = useAuth()
     
     return (
