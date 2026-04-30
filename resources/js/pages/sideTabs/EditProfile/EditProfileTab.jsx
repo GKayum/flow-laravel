@@ -10,11 +10,11 @@ import AvatarCropper from "../../../components/AvatarCropper/AvatarCropper"
 import { api, handlerApiError } from "../../../services/api"
 import { AtSign } from "lucide-react"
 import { Check } from "lucide-react"
-import { Trash } from "lucide-react"
 import Alert from "../../../components/UI/Alert/Alert"
 import { X } from "lucide-react"
+import TabHeader from "../../../components/TabHeader/TabHeader"
 
-export default function EditProfileTab() {
+export default function EditProfileTab({ onClose }) {
     const { user, setUser } = useAuth()
     const [formData, setFormData] = useState({
         avatar: user.avatar,
@@ -86,6 +86,8 @@ export default function EditProfileTab() {
     }
 
     return (
+        <>
+        <TabHeader text={'Редактирование профиля'} onClose={onClose} />
         <div className={styles.main}>
             <div className={styles.avatarContainer}>
                 <AvatarCropper onChangeAvatar={blob => handleChangeAvatar(blob)} avatarLoading={avatarLoading} />
@@ -166,5 +168,6 @@ export default function EditProfileTab() {
                 </section>
             </div>
         </div>
+        </>
     )
 }

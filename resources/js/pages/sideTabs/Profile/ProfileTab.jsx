@@ -5,11 +5,14 @@ import styles from "./ProfileTab.module.scss"
 import { Pen } from "lucide-react"
 import { Trash } from "lucide-react"
 import { Calendar1 } from "lucide-react"
+import TabHeader from "../../../components/TabHeader/TabHeader"
 
-export default function ProfileTab({ setActiveTab }) {
+export default function ProfileTab({ setActiveTab, onClose }) {
     const { user } = useAuth()
     
     return (
+        <>
+        <TabHeader text={'Профиль'} onClose={onClose} />
         <div className={styles.main}>
             <div className={styles.avatarContainer}>
                 <Avatar user={user} size="120px" fontSize="40px" />
@@ -27,7 +30,7 @@ export default function ProfileTab({ setActiveTab }) {
                     <button className={styles.item}>
                         <Calendar1 className={styles.icon} />
                         <div className={styles.item__body}>
-                            <span className={styles.content}>{user.email}</span>
+                            <span className={styles.content}>{user.dateOfBirth || 'Не указан'}</span>
                             <label className={styles.label}>Дата рождения</label>
                         </div>
                     </button>
@@ -54,5 +57,6 @@ export default function ProfileTab({ setActiveTab }) {
                 </section>
             </div>
         </div>
+        </>
     )
 }

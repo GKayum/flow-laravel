@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Успешная авторизация!',
-            'user' => Auth::user(),
+            'user' => new UserResource(Auth::user()),
         ]);
     }
 
@@ -55,7 +56,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Успешная регистрация!',
-            'user' => $user,
+            'user' => new UserResource($user),
         ]);
     }
 }

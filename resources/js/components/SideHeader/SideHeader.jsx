@@ -5,6 +5,9 @@ import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext"
 import Avatar from "../UI/Avatar/Avatar";
 import { LogOut } from "lucide-react";
+import { Settings } from "lucide-react";
+import { UserRoundSearch } from "lucide-react";
+import SearchField from "../UI/SearchField/SearchField";
 
 export default function SideHeader({ onSidebarClick, setActiveTab }) {
     const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -43,11 +46,26 @@ export default function SideHeader({ onSidebarClick, setActiveTab }) {
                                 onClick={() => {
                                     onSidebarClick()
                                     setDropdownOpen(false)
+                                    setActiveTab('users')
+                                }}
+                            >
+                                <div className={styles.imgContainer}>
+                                    <UserRoundSearch className={styles.img} />
+                                </div>
+                                <span className={styles.item__text}>Пользователи</span>
+                            </button>
+                        </div>
+                        <div className={styles.menuDropdown__block}>
+                            <button 
+                                className={styles.item}
+                                onClick={() => {
+                                    onSidebarClick()
+                                    setDropdownOpen(false)
                                     setActiveTab('settings')
                                 }}
                             >
                                 <div className={styles.imgContainer}>
-                                    <img src="/icons/settings.svg" className={styles.img} />
+                                    <Settings className={styles.img} />
                                 </div>
                                 <span className={styles.item__text}>Настройки</span>
                             </button>
@@ -64,10 +82,7 @@ export default function SideHeader({ onSidebarClick, setActiveTab }) {
                     </div>
                 )}
             </div>
-            <form action="" className={styles.search__form}>
-                <input className={styles.search__input} type="input" placeholder="Поиск" />
-                <Search className={styles.search__icon} />
-            </form>
+            <SearchField />
         </div>
     )
 }

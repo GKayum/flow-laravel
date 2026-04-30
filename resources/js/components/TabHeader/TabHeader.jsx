@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react"
 import styles from "./TabHeader.module.scss"
 
-export default function TabHeader({ text, onClose }) {
+export default function TabHeader({ text, onClose, children }) {
     return (
         <nav className={styles.mainNav}>
             <button 
@@ -10,7 +10,11 @@ export default function TabHeader({ text, onClose }) {
             >
                 <ArrowLeft className={styles.icon} />
             </button>
-            <span className={styles.mainNav__text}>{text}</span>
+            {children ? (
+                children
+            ) : (
+                <span className={styles.mainNav__text}>{text}</span>
+            )}
         </nav>
     )
 }

@@ -1,0 +1,36 @@
+.search__form {
+    display: flex;
+    background-color: var(--color-grey-3);
+    padding: 8px 16px;
+    border-radius: 20px;
+    width: 100%;
+    transition: all .1s ease-in-out;
+
+    &:hover {
+        outline: 1px var(--color-grey-1) solid;
+    }
+
+    &:focus-within {
+        outline: 1px var(--color-purple) solid;
+        background-color: inherit;
+        caret-color: var(--color-purple);
+
+        .search__icon {
+            color: var(--color-purple);
+        }
+    }
+
+    .search__input {
+        width: 100%;
+        background-color: inherit;
+        border: none;
+        font-size: 16px;
+        font-family: inherit;
+        outline: none;
+        color: #242424;
+    }
+
+    .search__icon {
+        color: inherit;
+    }
+}
