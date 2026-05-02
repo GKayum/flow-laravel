@@ -5,14 +5,7 @@
     margin: 1.2rem 0;
     overflow-y: auto;
 
-    &::-webkit-scrollbar {
-        width: 0.25rem /* 0.25rem = 4px */;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background-color: var(--color-grey-2);
-        border-radius: 30px;
-    }
+    @include custom-scroll;
 
     &__header {
         margin: 0 1.2rem;
