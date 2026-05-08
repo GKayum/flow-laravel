@@ -1,0 +1,51 @@
+.messageList {
+    max-width: 44rem /* 44rem = 704px */;
+    width: 100%;
+    height: max-content;
+    margin-block: 5px;
+
+
+    background-color: gray;
+
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    .messageItem {
+        max-width: 30rem /* 30rem = 480px */;
+
+        display: flex;
+        align-items: end;
+        gap: 5px;
+
+        .content {
+            background-color: #fff;
+            padding: 5px 10px;
+            border-radius: 12px;
+            border-bottom-left-radius: 0;
+
+            .name {
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            .contentInner {
+                display: flex;
+                align-items: end;
+                gap: 5px;
+
+                .message {
+                    font-weight: 400;
+                    line-height: 1.3;
+                    color: #000;
+                    overflow-wrap: break-word;
+                }
+
+                .time {
+                    font-size: 12px;
+                    color: var(--color-grey-1);
+                }
+            }
+        }
+    }
+}

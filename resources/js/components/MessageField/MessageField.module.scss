@@ -1,0 +1,34 @@
+.messageForm {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    // .messageInput {
+    // }
+
+    .btn {
+        padding: 5px;
+        border-radius: 50%;
+        cursor: pointer;
+
+        @include flex-center;
+
+        &:hover {
+            background-color: var(--color-grey-3);
+        }
+    }
+
+    .messageSubmit {
+        padding: 10px;
+        border-radius: 50%;
+        cursor: pointer;
+        background-color: var(--color-purple);
+        color: #fff;
+
+        @include flex-center;
+
+        &:hover {
+            opacity: .95;
+        }
+    }
+}
