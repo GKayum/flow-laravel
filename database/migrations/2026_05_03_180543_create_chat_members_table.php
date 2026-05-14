@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained();
             $table->foreignIdFor(Chat::class)->constrained();
+            $table->enum('role', ['owner', 'member', 'admin'])->default('member');
             $table->timestamps();
         });
     }

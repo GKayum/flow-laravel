@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ChatList from '../../components/ChatList/ChatList'
 import SideHeader from '../../components/SideHeader/SideHeader'
 import Sidebar from '../../layouts/Sidebar/Sidebar'
@@ -8,17 +8,30 @@ import ChatWindow from '../../components/ChatWindow/ChatWindow'
 export default function ChatsPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [activeTab, setActiveTab] = useState('')
+    const [selectedChat, setSelectedChat] = useState(null)
+
+    const onCloseChat = () => {
+        setSelectedChat(null)
+    }
+
+    useEffect(() => {
+        console.log('selectedChat: ', selectedChat);
+    }, [selectedChat])
 
     return (
         <main className={styles.main}>
             <aside className={styles.aside}>
                 <SideHeader onSidebarClick={() => setSidebarOpen(true)} setActiveTab={setActiveTab} />
-                <ChatList />
+                <ChatList onSidebarClick={() => setSidebarOpen(true)} setActiveTab={setActiveTab} setSelectedChat={setSelectedChat} />
 
-                <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} activeTab={activeTab} setActiveTab={setActiveTab}/>
+                <Sidebar 
+                    open={sidebarOpen} onClose={() => setSidebarOpen(false)} 
+                    activeTab={activeTab} setActiveTab={setActiveTab}
+                    setSelectedChat={setSelectedChat}
+                />
             </aside>
             <div className={styles.body}>
-                <ChatWindow />
+                <ChatWindow selectedChat={selectedChat} onCloseChat={onCloseChat} />
             </div>
         </main>
     )

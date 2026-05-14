@@ -6,39 +6,83 @@ import Avatar from '../UI/Avatar/Avatar'
 import { useAuth } from '../../contexts/AuthContext'
 import MessageList from '../MessageList/MessageList'
 import MessageField from '../MessageField/MessageField'
+import { api, handlerApiError } from '../../services/api'
 
-export default function ChatWindow() {
+export default function ChatWindow({ selectedChat, onCloseChat }) {
     const { user } = useAuth()
-    // if (!selectedChat) {
-        // return (
-        //     <div className={styles.not_msgs_block}>
-        //         <h2>Выберите чат для начала общения</h2>
-        //         <p>или создайте новый чат</p>
-        //     </div>
-        // )
-    // }
+    const [messages, setMessages] = useState([])
+    const [messagesLoading, setMessagesLoading] = useState(true)
+
+    useEffect(() => {
+        if (!selectedChat) return
+
+        (async () => {
+            api.get(`/api/message/${selectedChat.id}/list`)
+                .then(response => {
+                    console.log('messages: ', response.data);
+                    setMessages(response.data)
+                })
+                .catch(error => {
+                    console.error('Messages load error:', error.response?.status, error.response?.data)
+                    console.error('Messages load error:', error)
+                })
+                .finally(() => setMessagesLoading(false))
+        })()
+    }, [selectedChat])
+
+    const handleSendMessage = async (content) => {
+        try {
+            await api.get('/sanctum/csrf-cookie')
+            const response = await api.post(`/api/message/${selectedChat.id}/send`, { content })
+            console.log(response.data);
+        } catch (error) {
+            handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+        }
+    }
+
+    if (!selectedChat) {
+        return (
+            <div className={styles.not_msgs_block}>
+                <h2>Выберите чат для начала общения</h2>
+                <p>или создайте новый чат</p>
+            </div>
+        )
+    }
 
     return (
         <div className={styles.chat}>
             <header className={styles.chat__header}>
                 <div className={styles.info}>
-                    <Avatar user={user} size="2.625rem" fontSize="1.3125rem" />
+                    <Avatar user={selectedChat} size="2.625rem" fontSize="1.3125rem" />
                     <div className={styles.content}>
-                        <span className={styles.name}>Kayum</span>
+                        <span className={styles.name}>{selectedChat.name}</span>
                         <span className={styles.messages}>10 сообщений</span>
                     </div>
                 </div>
                 <div className={styles.actions}>
-                    <button className={styles.btn}>
+                    <button className={styles.btn} onClick={onCloseChat}>
                         <X />
                     </button>
                 </div>
             </header>
             <main className={styles.chat__body}>
-                <MessageList />
+                {messagesLoading ? (
+                    <div className={styles.loaderContainer}>
+                        <Loader />
+                    </div>
+                ) : (
+                    messages.length > 0 ? (
+                        <MessageList messages={messages} />
+                    ) : (
+                        <div className={styles.not_msgs_block}>
+                            <h2>Здесь пока сообщений нет</h2>
+                            <p>Отправьте сообщение</p>
+                        </div>
+                    )
+                )}
             </main>
             <footer className={styles.chat__footer}>
-                <MessageField />
+                <MessageField onSendMessage={handleSendMessage} />
             </footer>
         </div>
     )

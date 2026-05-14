@@ -1,16 +1,13 @@
-import { useRef, useState } from "react"
-import styles from "./AvatarCropper.module.scss"
-import Avatar from "../UI/Avatar/Avatar"
-import { useAuth } from "../../contexts/AuthContext"
-import { Camera } from "lucide-react"
 import Cropper from "react-easy-crop"
-import { Check } from "lucide-react"
-import { X } from "lucide-react"
-import { Loader } from "../UI/Loader/Loader"
+import { useRef, useState } from "react"
+import { Loader } from "../Loader/Loader"
+import { Camera, Check, X } from "lucide-react"
+import styles from "./GroupAvatarCropper.module.scss"
 
-export default function AvatarCropper({ onChangeAvatar, avatarLoading }) {
-    const { user } = useAuth()
+export default function GroupAvatarCropper({ onChangeAvatar, avatarLoading }) {
     const [image, setImage] = useState(null)
+    const [previewUrl, setPreviewUrl] = useState(null)
+    const [loading, setLoading] = useState(false)
     const inputRef = useRef()
 
     const [crop, setCrop] = useState({x: 0, y: 0})
@@ -22,7 +19,7 @@ export default function AvatarCropper({ onChangeAvatar, avatarLoading }) {
             const reader = new FileReader()
             reader.readAsDataURL(e.target.files[0])
             reader.onload = function () {
-                setImage(reader.result)
+                setImage(reader.result)                
             }
         }
     }
@@ -33,6 +30,7 @@ export default function AvatarCropper({ onChangeAvatar, avatarLoading }) {
 
     const onCropDone = async (croppedArea) => {
         if (!image) return
+        setLoading(true)
         setImage(null)
 
         const img = new Image()
@@ -60,8 +58,9 @@ export default function AvatarCropper({ onChangeAvatar, avatarLoading }) {
             canvas.toBlob(
                 (blob) => {
                     if (!blob) return
+                    setLoading(false)
                     const url = URL.createObjectURL(blob)
-                    console.log('url: ', url)
+                    setPreviewUrl(url)
                     onChangeAvatar(blob)
                 },
                 'image/webp',
@@ -115,13 +114,20 @@ export default function AvatarCropper({ onChangeAvatar, avatarLoading }) {
                     className={styles.button}
                     onClick={() => inputRef.current.click()}
                 >
-                    {avatarLoading ? (
+                    {loading ? (
                         <Loader style={{ color: '#fff', strokeWidth: '3px' }} width='32px' height='32px' />
                     ) : (
                         <Camera className={styles.icon} />
                     )}
                 </button>
-                <Avatar user={user} size="120px" fontSize="40px" />
+                <div className={styles.container}>
+                    {!loading && previewUrl && (
+                        <img src={previewUrl} alt="Предпросмотр изображения" />
+                    )}
+                    {/* {previewUrl && (
+                        <img src={previewUrl} alt="Предпросмотр изображения" />
+                    )} */}
+                </div>
                 </>
             )}
         </div>

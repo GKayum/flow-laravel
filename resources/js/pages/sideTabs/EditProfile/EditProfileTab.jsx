@@ -6,13 +6,13 @@ import { Field } from "../../../components/UI/Field/Field"
 import { useState } from "react"
 import { UserRound } from "lucide-react"
 import { SquareAsterisk } from "lucide-react"
-import AvatarCropper from "../../../components/AvatarCropper/AvatarCropper"
 import { api, handlerApiError } from "../../../services/api"
 import { AtSign } from "lucide-react"
 import { Check } from "lucide-react"
 import Alert from "../../../components/UI/Alert/Alert"
 import { X } from "lucide-react"
 import TabHeader from "../../../components/TabHeader/TabHeader"
+import UserAvatarCropper from "../../../components/UI/UserAvatarCropper/UserAvatarCropper"
 
 export default function EditProfileTab({ onClose }) {
     const { user, setUser } = useAuth()
@@ -90,7 +90,7 @@ export default function EditProfileTab({ onClose }) {
         <TabHeader text={'Редактирование профиля'} onClose={onClose} />
         <div className={styles.main}>
             <div className={styles.avatarContainer}>
-                <AvatarCropper onChangeAvatar={blob => handleChangeAvatar(blob)} avatarLoading={avatarLoading} />
+                <UserAvatarCropper onChangeAvatar={blob => handleChangeAvatar(blob)} avatarLoading={avatarLoading} />
                 <span className={styles.avatarContainer__name}>{user.name}</span>
             </div>
             <div className={styles.body}>

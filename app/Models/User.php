@@ -53,4 +53,10 @@ class User extends Authenticatable
     public function messages() {
         return $this->hasMany(Message::class);
     }
+
+    public function chats() {
+        return $this->belongsToMany(Chat::class, 'chat_members')
+            ->using(ChatMember::class)
+            ->withPivot(['role']);
+    }
 }

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react"
 import { api } from "../../../services/api"
 import { useDebounce } from "../../../hooks/useDebounce"
 
-export default function UsersTab({ onClose }) {
+export default function UsersTab({ onClose, setSelectedChat }) {
     const [value, setValue] = useState('')
     const [users, setUsers] = useState([])
     const debouncedValue = useDebounce(value)
@@ -31,6 +31,12 @@ export default function UsersTab({ onClose }) {
             .catch(error => console.error(error))
 
     }, [debouncedValue])
+
+    const handleClick = ({ user, isUser }) => {
+        setSelectedChat({ user, isUser })
+        onClose()
+        setValue('')
+    }
     
     return (
         <>
@@ -40,7 +46,7 @@ export default function UsersTab({ onClose }) {
         <div className={styles.main}>
             {users && (
                 users.map((user) => (
-                    <button className={styles.item} key={user.id}>
+                    <button className={styles.item} key={user.id} onClick={() => handleClick({ user: user, isUser: true })}>
                         <Avatar user={user} size="2.625rem" fontSize="1.3rem" />
                         <div className={styles.item__body}>
                             <span className={styles.content}>{user.name}</span>

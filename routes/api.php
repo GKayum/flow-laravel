@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
@@ -17,5 +19,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('/user')->group(function () {
         Route::get('/profile', [UserController::class, 'profile']);
         Route::post('/update', [UserController::class, 'update']);
+    });
+
+    Route::prefix('/chat')->group(function () {
+        Route::get('/list', [ChatController::class, 'list']);
+        Route::post('/create', [ChatController::class, 'create']);
+    });
+
+    Route::prefix('/message')->group(function () {
+        Route::get('/{chat}/list', [MessageController::class, 'list']);
+        Route::post('/{chat}/send', [MessageController::class,'send']);
     });
 });

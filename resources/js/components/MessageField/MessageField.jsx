@@ -5,11 +5,14 @@ import { Field } from "../UI/Field/Field"
 import { Smile } from "lucide-react"
 import { useState } from "react"
 
-export default function MessageField() {
+export default function MessageField({ onSendMessage }) {
     const [message, setMessage] = useState('')
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        if (!message.trim()) return
+
+        onSendMessage(message)
         setMessage('')
     }
 

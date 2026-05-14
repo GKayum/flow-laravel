@@ -77,6 +77,16 @@
         flex-grow: 1;
 
         @include custom-scroll($color: var(--color-grey-1));
+
+        .loaderContainer {
+            @include flex-center;
+
+            svg {
+                stroke-width: 3px;
+                width: 2rem /* 32px */;
+                height: 2rem /* 32px */;
+            }
+        }
     }
 
     &__footer {

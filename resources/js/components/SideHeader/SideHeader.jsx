@@ -1,6 +1,5 @@
 import { Menu } from "lucide-react";
 import styles from "./SideHeader.module.scss"
-import { Search } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext"
 import Avatar from "../UI/Avatar/Avatar";
@@ -24,7 +23,10 @@ export default function SideHeader({ onSidebarClick, setActiveTab }) {
                 </button>
 
                 {dropdownOpen && (
-                    <div className={styles.menuDropdown} onMouseLeave={() => setDropdownOpen(false)}>
+                    <div 
+                        className={styles.menuDropdown} 
+                        onMouseLeave={() => setDropdownOpen(false)}
+                    >
                         <div className={styles.menuDropdown__block}>
                             <button 
                                 className={styles.item}
