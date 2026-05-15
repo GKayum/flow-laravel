@@ -6,15 +6,43 @@
     // .messageInput {
     // }
 
-    .btn {
-        padding: 5px;
-        border-radius: 50%;
-        cursor: pointer;
+    .pickerContainer {
+        .btn {
+            padding: 5px;
+            border-radius: 50%;
+            cursor: pointer;
 
-        @include flex-center;
+            @include flex-center;
 
-        &:hover {
-            background-color: var(--color-grey-3);
+            &:hover {
+                background-color: var(--color-grey-3);
+            }
+
+            &.active {
+                svg {
+                    color: var(--color-purple);
+                }
+            }
+        }
+
+        .pickerBlock {
+            position: absolute;
+            z-index: 20;
+            left: 0;
+            bottom: 100%;
+            margin-bottom: .75rem /* 12px */;
+            
+            opacity: 0;
+            transform: translateY(8px) scale(0.7);
+            transform-origin: bottom left;
+            transition: opacity 0.1s ease, transform 0.1s ease;
+            pointer-events: none;
+
+            &.visible {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                pointer-events: auto;
+            }
         }
     }
 

@@ -4,9 +4,16 @@ import { Paperclip } from "lucide-react"
 import { Field } from "../UI/Field/Field"
 import { Smile } from "lucide-react"
 import { useState } from "react"
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
 
 export default function MessageField({ onSendMessage }) {
     const [message, setMessage] = useState('')
+    const [showPicker, setShowPicker] = useState(false)
+
+    const addEmoji = (emoji) => {
+        setMessage(message + emoji.native)
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -18,9 +25,31 @@ export default function MessageField({ onSendMessage }) {
 
     return (
         <form className={styles.messageForm} onSubmit={handleSubmit}>
-            <button type="button" className={styles.btn}>
-                <Smile />
-            </button>
+
+            <div className={styles.pickerContainer}>
+                <button 
+                    type="button" 
+                    className={`${styles.btn} ${showPicker ? styles.active : ''}`} 
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        setShowPicker(prev => !prev)
+                    }}
+                >
+                    <Smile />
+                </button>
+
+                <div className={`${styles.pickerBlock} ${showPicker ? styles.visible : ''}`} >
+                    <Picker
+                        data={data}
+                        theme={'light'}
+                        locale={'ru'}
+                        previewPosition={'none'}
+                        onEmojiSelect={addEmoji} 
+                        onClickOutside={() => setShowPicker(false)}
+                    />
+                </div>
+            </div>
+
             <Field
                 type="text"
                 placeholder="Введите сообщение"
