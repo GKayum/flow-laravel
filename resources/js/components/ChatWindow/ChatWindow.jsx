@@ -1,22 +1,22 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import styles from './ChatWindow.module.scss'
-import { CircleUser, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Loader } from '../UI/Loader/Loader'
 import Avatar from '../UI/Avatar/Avatar'
-import { useAuth } from '../../contexts/AuthContext'
 import MessageList from '../MessageList/MessageList'
 import MessageField from '../MessageField/MessageField'
 import { api, handlerApiError } from '../../services/api'
 
 export default function ChatWindow({ selectedChat, onCloseChat }) {
-    const { user } = useAuth()
     const [messages, setMessages] = useState([])
     const [messagesLoading, setMessagesLoading] = useState(true)
 
     useEffect(() => {
         if (!selectedChat) return
-
+        
         (async () => {
+            setMessagesLoading(true)
+            
             api.get(`/api/message/${selectedChat.id}/list`)
                 .then(response => {
                     console.log('messages: ', response.data);
@@ -24,7 +24,6 @@ export default function ChatWindow({ selectedChat, onCloseChat }) {
                 })
                 .catch(error => {
                     console.error('Messages load error:', error.response?.status, error.response?.data)
-                    console.error('Messages load error:', error)
                 })
                 .finally(() => setMessagesLoading(false))
         })()
@@ -34,7 +33,7 @@ export default function ChatWindow({ selectedChat, onCloseChat }) {
         try {
             await api.get('/sanctum/csrf-cookie')
             const response = await api.post(`/api/message/${selectedChat.id}/send`, { content })
-            console.log(response.data);
+            setMessages(prev => [...prev, response.data])
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }
@@ -56,7 +55,7 @@ export default function ChatWindow({ selectedChat, onCloseChat }) {
                     <Avatar user={selectedChat} size="2.625rem" fontSize="1.3125rem" />
                     <div className={styles.content}>
                         <span className={styles.name}>{selectedChat.name}</span>
-                        <span className={styles.messages}>10 сообщений</span>
+                        <span className={styles.messages}>{messages.length} сообщений</span>
                     </div>
                 </div>
                 <div className={styles.actions}>
