@@ -8,8 +8,10 @@ import GroupAvatarCropper from "../../../components/UI/GroupAvatarCropper/GroupA
 import SearchField from "../../../components/UI/SearchField/SearchField"
 import Avatar from "../../../components/UI/Avatar/Avatar"
 import { CircleCheck } from "lucide-react"
+import { useChat } from "../../../contexts/ChatContext"
 
-export default function CreateGroupTab({ onClose, setSelectedChat }) {
+export default function CreateGroupTab({ onClose }) {
+    const { onSelectChat, setChats } = useChat()
     const [formData, setFormData] = useState({
         avatar: null,
         name: '',
@@ -79,10 +81,10 @@ export default function CreateGroupTab({ onClose, setSelectedChat }) {
             setUsers([])
             setValue('')
             setMembers([])
-            setSelectedChat(response.data.chat)
+            onSelectChat(response.data.chat)
+            setChats(prev => [response.data.chat, ...prev])
         } catch (error) {
             handlerApiError(error, { setValidationErrors, setError })
-            console.log(error);
         } finally {
             setSubmitting(false)
         }

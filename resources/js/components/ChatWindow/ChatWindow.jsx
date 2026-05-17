@@ -6,8 +6,10 @@ import Avatar from '../UI/Avatar/Avatar'
 import MessageList from '../MessageList/MessageList'
 import MessageField from '../MessageField/MessageField'
 import { api, handlerApiError } from '../../services/api'
+import { useChat } from '../../contexts/ChatContext'
 
-export default function ChatWindow({ selectedChat, onCloseChat }) {
+export default function ChatWindow() {
+    const { selectedChat, onCloseChat } = useChat()
     const [messages, setMessages] = useState([])
     const [messagesLoading, setMessagesLoading] = useState(true)
 
@@ -55,7 +57,8 @@ export default function ChatWindow({ selectedChat, onCloseChat }) {
                     <Avatar user={selectedChat} size="2.625rem" fontSize="1.3125rem" />
                     <div className={styles.content}>
                         <span className={styles.name}>{selectedChat.name}</span>
-                        <span className={styles.messages}>{messages.length} сообщений</span>
+                        {/* <span className={styles.messages}>{messages.length} сообщений</span> */}
+                        <span className={styles.messages}>{!messagesLoading ? `${messages.length} сообщений` : 'загрузка...'}</span>
                     </div>
                 </div>
                 <div className={styles.actions}>

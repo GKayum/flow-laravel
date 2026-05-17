@@ -1,30 +1,15 @@
 import { CirclePlus } from 'lucide-react'
 import ChatItem from '../ChatItem/ChatItem'
 import styles from './ChatList.module.scss'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { UserRound } from 'lucide-react'
 import { UsersRound } from 'lucide-react'
-import { api } from '../../services/api'
 import { Loader } from '../UI/Loader/Loader'
+import { useChat } from '../../contexts/ChatContext'
 
-export default function ChatList({ onSidebarClick, setActiveTab, setSelectedChat }) {
-    const [chats, setChats] = useState([])
-    const [chatsLoading, setChatsLoading] = useState(true)
+export default function ChatList({ onOpenSidebar, onTabChange }) {
+    const { chats, chatsLoading } = useChat()
     const [dropdownOpen, setDropdownOpen] = useState(false)
-
-    useEffect(() => {
-        (async () => {
-            api.get('/api/chat/list')
-                .then(response => {
-                    console.log(response);
-                    setChats(response.data)
-                })
-                .catch(error => {
-                    console.error('Chats load error:', error.response?.status, error.response?.data)
-                })
-                .finally(() => setChatsLoading(false))
-        })()
-    }, [])
 
     return (
         <main className={styles.main}>
@@ -48,9 +33,9 @@ export default function ChatList({ onSidebarClick, setActiveTab, setSelectedChat
                                 <button 
                                     className={styles.item}
                                     onClick={() => {
-                                        setActiveTab('users')
+                                        onTabChange('users')
                                         setDropdownOpen(false)
-                                        onSidebarClick()
+                                        onOpenSidebar()
                                     }}
                                 >
                                     <div className={styles.imgContainer}>
@@ -61,9 +46,9 @@ export default function ChatList({ onSidebarClick, setActiveTab, setSelectedChat
                                 <button 
                                     className={styles.item}
                                     onClick={() => {
-                                        setActiveTab('createGroup')
+                                        onTabChange('createGroup')
                                         setDropdownOpen(false)
-                                        onSidebarClick()
+                                        onOpenSidebar()
                                     }}
                                 >
                                     <div className={styles.imgContainer}>
@@ -86,7 +71,6 @@ export default function ChatList({ onSidebarClick, setActiveTab, setSelectedChat
                         <ChatItem
                             key={chat.id}
                             chat={chat}
-                            setSelectedChat={setSelectedChat}
                         />
                         // <ChatItem 
                         //     type={'button'}

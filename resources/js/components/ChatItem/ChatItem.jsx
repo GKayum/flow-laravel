@@ -1,11 +1,16 @@
+import { useChat } from '../../contexts/ChatContext'
 import Avatar from '../UI/Avatar/Avatar'
 import styles from './ChatItem.module.scss'
 
-export default function ChatItem({ chat, setSelectedChat }) {
+export default function ChatItem({ chat }) {
+    const { onSelectChat, selectedChat } = useChat()
+    
+    const isSelected = selectedChat?.id === chat.id
+
     return (
         <button
-            className={styles.button}
-            onClick={() => setSelectedChat(chat)}
+            className={`${styles.button} ${isSelected ? styles.selected : ''}`}
+            onClick={() => onSelectChat(chat)}
         >
             <Avatar user={chat} size="3.2rem" />
             <div className={styles.button__body}>

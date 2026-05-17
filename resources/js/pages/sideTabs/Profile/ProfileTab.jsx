@@ -7,7 +7,7 @@ import { Trash } from "lucide-react"
 import { Calendar1 } from "lucide-react"
 import TabHeader from "../../../components/TabHeader/TabHeader"
 
-export default function ProfileTab({ setActiveTab, onClose }) {
+export default function ProfileTab({ onTabChange, onClose }) {
     const { user } = useAuth()
     
     return (
@@ -39,7 +39,7 @@ export default function ProfileTab({ setActiveTab, onClose }) {
                 <section className={styles.body__block}>
                     <button 
                         className={`${styles.item} ${styles.buttonEdit}`}
-                        onClick={() => setActiveTab('editProfile')}
+                        onClick={() => onTabChange('editProfile')}
                     >
                         <Pen className={styles.icon} />
                         <div className={styles.item__body}>

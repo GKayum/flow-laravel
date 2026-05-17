@@ -71,6 +71,7 @@
 
     &__body {
         overflow-y: auto;
+        scrollbar-gutter: stable;
 
         display: flex;
         justify-content: center;
@@ -82,7 +83,6 @@
             @include flex-center;
 
             svg {
-                stroke-width: 3px;
                 width: 2rem /* 32px */;
                 height: 2rem /* 32px */;
             }

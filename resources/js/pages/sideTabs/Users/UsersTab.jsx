@@ -5,8 +5,10 @@ import SearchField from "../../../components/UI/SearchField/SearchField"
 import { useEffect, useMemo, useState } from "react"
 import { api } from "../../../services/api"
 import { useDebounce } from "../../../hooks/useDebounce"
+import { useChat } from "../../../contexts/ChatContext"
 
-export default function UsersTab({ onClose, setSelectedChat }) {
+export default function UsersTab({ onClose }) {
+    const { onSelectChat } = useChat()
     const [value, setValue] = useState('')
     const [users, setUsers] = useState([])
     const debouncedValue = useDebounce(value)
@@ -33,7 +35,7 @@ export default function UsersTab({ onClose, setSelectedChat }) {
     }, [debouncedValue])
 
     const handleClick = ({ user, isUser }) => {
-        setSelectedChat({ user, isUser })
+        onSelectChat({ user, isUser })
         onClose()
         setValue('')
     }

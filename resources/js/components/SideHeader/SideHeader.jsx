@@ -8,7 +8,7 @@ import { Settings } from "lucide-react";
 import { UserRoundSearch } from "lucide-react";
 import SearchField from "../UI/SearchField/SearchField";
 
-export default function SideHeader({ onSidebarClick, setActiveTab }) {
+export default function SideHeader({ onOpenSidebar, onTabChange }) {
     const [dropdownOpen, setDropdownOpen] = useState(false)
     const { user, logout } = useAuth()
 
@@ -31,9 +31,9 @@ export default function SideHeader({ onSidebarClick, setActiveTab }) {
                             <button 
                                 className={styles.item}
                                 onClick={() => {
-                                    onSidebarClick()
+                                    onOpenSidebar()
                                     setDropdownOpen(false)
-                                    setActiveTab('profile')
+                                    onTabChange('profile')
                                 }}
                             >
                                 <Avatar user={user} />
@@ -46,9 +46,9 @@ export default function SideHeader({ onSidebarClick, setActiveTab }) {
                             <button 
                                 className={styles.item}
                                 onClick={() => {
-                                    onSidebarClick()
+                                    onOpenSidebar()
                                     setDropdownOpen(false)
-                                    setActiveTab('users')
+                                    onTabChange('users')
                                 }}
                             >
                                 <div className={styles.imgContainer}>
@@ -61,9 +61,9 @@ export default function SideHeader({ onSidebarClick, setActiveTab }) {
                             <button 
                                 className={styles.item}
                                 onClick={() => {
-                                    onSidebarClick()
+                                    onOpenSidebar()
                                     setDropdownOpen(false)
-                                    setActiveTab('settings')
+                                    onTabChange('settings')
                                 }}
                             >
                                 <div className={styles.imgContainer}>

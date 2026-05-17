@@ -1,38 +1,41 @@
-import { useEffect, useState } from 'react'
 import ChatList from '../../components/ChatList/ChatList'
 import SideHeader from '../../components/SideHeader/SideHeader'
 import Sidebar from '../../layouts/Sidebar/Sidebar'
 import styles from './ChatsPage.module.scss'
 import ChatWindow from '../../components/ChatWindow/ChatWindow'
+import { useChatsPage } from '../../hooks/useChatsPage'
+import { ChatProvider } from '../../contexts/ChatContext'
 
 export default function ChatsPage() {
-    const [sidebarOpen, setSidebarOpen] = useState(false)
-    const [activeTab, setActiveTab] = useState('')
-    const [selectedChat, setSelectedChat] = useState(null)
-
-    const onCloseChat = () => {
-        setSelectedChat(null)
-    }
-
-    useEffect(() => {
-        console.log('selectedChat: ', selectedChat);
-    }, [selectedChat])
+    const {
+        sidebarOpen,
+        activeTab,
+        openSidebar,
+        closeSidebar,
+        onTabChange,
+    } = useChatsPage()
 
     return (
+        <ChatProvider>
         <main className={styles.main}>
             <aside className={styles.aside}>
-                <SideHeader onSidebarClick={() => setSidebarOpen(true)} setActiveTab={setActiveTab} />
-                <ChatList onSidebarClick={() => setSidebarOpen(true)} setActiveTab={setActiveTab} setSelectedChat={setSelectedChat} />
+                <SideHeader onOpenSidebar={openSidebar} onTabChange={onTabChange} />
+                <ChatList
+                    onOpenSidebar={openSidebar}
+                    onTabChange={onTabChange}
+                />
 
                 <Sidebar 
-                    open={sidebarOpen} onClose={() => setSidebarOpen(false)} 
-                    activeTab={activeTab} setActiveTab={setActiveTab}
-                    setSelectedChat={setSelectedChat}
+                    open={sidebarOpen} 
+                    onClose={closeSidebar} 
+                    activeTab={activeTab}
+                    onTabChange={onTabChange}
                 />
             </aside>
             <div className={styles.body}>
-                <ChatWindow selectedChat={selectedChat} onCloseChat={onCloseChat} />
+                <ChatWindow />
             </div>
         </main>
+        </ChatProvider>
     )
 }

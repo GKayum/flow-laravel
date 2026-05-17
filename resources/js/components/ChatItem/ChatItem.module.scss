@@ -4,7 +4,7 @@
     background-color: #fff;
     border: none;
     cursor: pointer;
-    transition: all .1s ease-in-out;
+    transition: background-color .1s ease-in-out;
 
     display: flex;
     justify-content: start;
@@ -15,34 +15,23 @@
         background-color: var(--color-grey-3);
     }
 
-    &.active {
-        // background-color: #30323E;
+    &.selected {
+        // background-color: var(--color-black-2);
         background-color: var(--color-purple);
-        color: #fff;
-        
-        .time {
-            color: #fff;
-        }
 
-        .message {
+        .button__body {
             color: #fff;
+
+            .time {
+                color: #fff;
+            }
+
+            .message {
+                color: #fff;
+            }
         }
     }
     
-    .chat__img {
-        width: 3.2rem;
-        height: 3.2rem;
-        background-color: var(--color-grey-2);
-        border-radius: 100%;
-        font-weight: 600;
-        font-size: 1rem;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
     &__body {
         display: flex;
         flex-direction: column;
@@ -77,6 +66,5 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        transition: all .3s ease-in-out;
     }
 }
