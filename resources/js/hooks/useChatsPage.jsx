@@ -1,21 +1,44 @@
 import { useCallback, useState } from "react"
 
 export function useChatsPage() {
-    const [sidebarOpen, setSidebarOpen] = useState(false)
-    const [activeTab, setActiveTab] = useState('')
+    const [state, setState] = useState({
+        mainOpen: false,
+        chatOpen: false,
+        mainTab: "",
+        chatTab: "",
+    })
 
-    const openSidebar = useCallback(() => setSidebarOpen(true), [])
-    const closeSidebar = useCallback(() => setSidebarOpen(false), [])
+    const openSidebar = useCallback((name) => {
+        setState(prev => ({ ...prev, [`${name}Open`]: true }))
+    }, [])
 
-    const onTabChange = useCallback((tab) => {
-        setActiveTab(tab)
+    const closeSidebar = useCallback((name) => {
+        setState(prev => ({ ...prev, [`${name}Open`]: false }))
+    }, [])
+
+    const onTabChange = useCallback((type, tab) => {
+        setState(prev => ({ ...prev, [`${type}Tab`]: tab }))
     }, [])
 
     return {
-        sidebarOpen,
-        activeTab,
+        sidebarOpen: state.mainOpen,
+        chatSidebarOpen: state.chatOpen,
+        activeTab: state.mainTab,
+        chatActiveTab: state.chatTab,
+
         openSidebar,
         closeSidebar,
         onTabChange,
+
+        // sidebarOpen,
+        // chatSidebarOpen,
+        // activeTab,
+        // chatActiveTab,
+        // openSidebar,
+        // closeSidebar,
+        // openChatSidebar,
+        // closeChatSidebar,
+        // onTabChange,
+        // onChatTabChange,
     }
 }

@@ -6,9 +6,10 @@ import Avatar from "../../UI/Avatar/Avatar"
 import styles from "./UserAvatarCropper.module.scss"
 import { useAuth } from "../../../contexts/AuthContext"
 
-export default function UserAvatarCropper({ onChangeAvatar, avatarLoading }) {
+export default function UserAvatarCropper({ onChangeAvatar, avatarLoading = null }) {
     const { user } = useAuth()
     const [image, setImage] = useState(null)
+    const [loading, setLoading] = useState(false)
     const inputRef = useRef()
 
     const [crop, setCrop] = useState({x: 0, y: 0})
@@ -31,6 +32,7 @@ export default function UserAvatarCropper({ onChangeAvatar, avatarLoading }) {
 
     const onCropDone = async (croppedArea) => {
         if (!image) return
+        setLoading(true)
         setImage(null)
 
         const img = new Image()
@@ -58,8 +60,8 @@ export default function UserAvatarCropper({ onChangeAvatar, avatarLoading }) {
             canvas.toBlob(
                 (blob) => {
                     if (!blob) return
+                    setLoading(false)
                     const url = URL.createObjectURL(blob)
-                    console.log('url: ', url)
                     onChangeAvatar(blob)
                 },
                 'image/webp',
@@ -113,8 +115,8 @@ export default function UserAvatarCropper({ onChangeAvatar, avatarLoading }) {
                     className={styles.button}
                     onClick={() => inputRef.current.click()}
                 >
-                    {avatarLoading ? (
-                        <Loader style={{ color: '#fff', strokeWidth: '3px' }} width='32px' height='32px' />
+                    {loading || avatarLoading ? (
+                        <Loader style={{ color: '#fff' }} width='32px' height='32px' />
                     ) : (
                         <Camera className={styles.icon} />
                     )}

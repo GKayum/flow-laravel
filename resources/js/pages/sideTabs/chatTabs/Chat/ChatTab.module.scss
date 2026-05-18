@@ -1,32 +1,67 @@
+.tabHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+
+    .editBtn {
+        padding: 8px;
+        border-radius: 100%;
+        transition: background-color .1s ease-in-out;
+        cursor: pointer;
+        
+        &:hover {
+            background-color: var(--color-grey-3);
+        }
+
+        display: flex;
+        place-items: center;
+    }
+
+    .text {
+        font-size: 17px;
+        font-weight: 600;
+    }
+}
+
 .main {
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
 
-    margin: 1.2rem;
+    margin-top: 1.2rem;
+
+    min-height: 0;
     
     .avatarContainer {
-        display: flex;
+        @include flex-center;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
 
         &__name {
             font-weight: 600;
             font-size: 20px;
+            margin-top: 8px;
+        }
+
+        &__members {
+            font-size: 14px;
+            color: var(--color-grey-1);
         }
     }
 
     .body {
+        display: flex;
+        flex-direction: column;
 
-        &__block {
-            padding: 10px 0;
-            border-bottom: 1px solid rgba($color: #191816, $alpha: .2);
+        min-height: 0;
 
-            &:last-child {
-                border-bottom: none;
-            }
+        .membersContainer {
+            overflow-y: auto;
+            border-top: 1px solid rgba($color: #191816, $alpha: .2);
+            padding: 10px 1.2rem;
+
+            @include custom-scroll;
 
             .item {
                 display: flex;
@@ -36,36 +71,11 @@
                 width: 100%;
                 padding: 5px 15px;
                 border-radius: 10px;
+                cursor: pointer;
                 transition: background-color .1s ease-in-out;
 
                 &:hover {
                     background-color: var(--color-grey-3);
-                }
-
-                &.buttonEdit {
-                    color: var(--color-purple);
-                    cursor: pointer;
-
-                    &:hover {
-                        background-color: var(--color-blue-1);
-                    }
-
-                    .icon {
-                        color: var(--color-purple);
-                    }
-                }
-
-                &.buttonDanger {
-                    color: var(--color-red-1);
-                    cursor: pointer;
-
-                    &:hover {
-                        background-color: var(--color-red-2);
-                    }
-
-                    .icon {
-                        color: var(--color-red-1);
-                    }
                 }
 
                 .icon {
@@ -88,6 +98,7 @@
                     }
                 }
             }
+
         }
     }
 }

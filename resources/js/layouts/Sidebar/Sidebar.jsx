@@ -1,5 +1,4 @@
 import styles from "./Sidebar.module.scss"
-import { useEffect } from "react"
 import ProfileTab from "../../pages/sideTabs/Profile/ProfileTab"
 import EditProfileTab from "../../pages/sideTabs/EditProfile/EditProfileTab"
 import UsersTab from "../../pages/sideTabs/Users/UsersTab"

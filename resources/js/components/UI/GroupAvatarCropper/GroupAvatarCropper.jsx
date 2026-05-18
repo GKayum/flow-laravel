@@ -4,7 +4,7 @@ import { Loader } from "../Loader/Loader"
 import { Camera, Check, X } from "lucide-react"
 import styles from "./GroupAvatarCropper.module.scss"
 
-export default function GroupAvatarCropper({ onChangeAvatar, avatarLoading }) {
+export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
     const [image, setImage] = useState(null)
     const [previewUrl, setPreviewUrl] = useState(null)
     const [loading, setLoading] = useState(false)
@@ -115,7 +115,7 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatarLoading }) {
                     onClick={() => inputRef.current.click()}
                 >
                     {loading ? (
-                        <Loader style={{ color: '#fff', strokeWidth: '3px' }} width='32px' height='32px' />
+                        <Loader style={{ color: '#fff' }} width='32px' height='32px' />
                     ) : (
                         <Camera className={styles.icon} />
                     )}
@@ -124,9 +124,7 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatarLoading }) {
                     {!loading && previewUrl && (
                         <img src={previewUrl} alt="Предпросмотр изображения" />
                     )}
-                    {/* {previewUrl && (
-                        <img src={previewUrl} alt="Предпросмотр изображения" />
-                    )} */}
+                    {avatar && <img src={avatar} /> }
                 </div>
                 </>
             )}

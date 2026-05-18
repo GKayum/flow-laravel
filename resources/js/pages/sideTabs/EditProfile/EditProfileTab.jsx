@@ -90,7 +90,10 @@ export default function EditProfileTab({ onClose }) {
         <TabHeader text={'Редактирование профиля'} onClose={onClose} />
         <div className={styles.main}>
             <div className={styles.avatarContainer}>
-                <UserAvatarCropper onChangeAvatar={blob => handleChangeAvatar(blob)} avatarLoading={avatarLoading} />
+                <UserAvatarCropper 
+                    onChangeAvatar={blob => handleChangeAvatar(blob)} 
+                    avatarLoading={avatarLoading}
+                />
                 <span className={styles.avatarContainer__name}>{user.name}</span>
             </div>
             <div className={styles.body}>
@@ -105,7 +108,6 @@ export default function EditProfileTab({ onClose }) {
                             value={formData.name}
                             style={validationErrors.name ? { borderColor: '#FF0001' } : {}}
                         />
-                        
                     </div>
                     <div className={styles.item}>
                         <Calendar1 className={styles.icon} />

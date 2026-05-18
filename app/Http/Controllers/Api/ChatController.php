@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ChatResource;
+use App\Models\Chat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ChatController extends Controller
 {
@@ -56,6 +58,38 @@ class ChatController extends Controller
 
         return response()->json([
             'message' => 'Групповой чат успешно создан!',
+            'chat' => new ChatResource($chat),
+        ]);
+    }
+
+    public function update(Request $request, Chat $chat) {
+        $data = $request->all();
+        $user = $request->user();
+        
+        if (isset($data['avatar']) && $data['avatar'] === $chat->avatar) {
+            unset($data['avatar']);
+        }
+        
+        $validator = Validator::make($data, [
+            'name' => 'sometimes|required|string|max:64',
+            'avatar' => 'nullable|image|mimetypes:image/jpg,image/jpeg,image/png,image/webp', // TODO <<GIF>>
+        ]);
+
+        $validated = $validator->validated();
+
+        if ($request->hasFile('avatar')) {
+            if (!empty($chat->avatar)) {
+                $relativePath = Str::replaceFirst('/storage/', '', $chat->avatar);
+                Storage::disk('public')->delete($relativePath);
+            }
+            $path = Storage::disk('public')->putFile('avatars', $request->file('avatar'));
+            $validated['avatar'] = Storage::url($path);
+        }
+
+        $chat->update($validated);
+
+        return response()->json([
+            'message' => 'Данные изменены',
             'chat' => new ChatResource($chat),
         ]);
     }

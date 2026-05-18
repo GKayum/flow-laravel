@@ -1,9 +1,8 @@
 .search__form {
-    display: flex;
     box-sizing: border-box;
     background-color: var(--color-grey-3);
-    padding: 8px 16px;
     border-radius: 20px;
+    overflow: hidden;
     width: 100%;
     transition: all .1s ease-in-out;
 
@@ -19,6 +18,13 @@
         .search__icon {
             color: var(--color-purple);
         }
+    }
+
+    .search__label {
+        display: flex;
+        width: 100%;
+        padding: 8px 16px;
+        cursor: text;
     }
 
     .search__input {

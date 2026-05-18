@@ -24,6 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('/chat')->group(function () {
         Route::get('/list', [ChatController::class, 'list']);
         Route::post('/create', [ChatController::class, 'create']);
+        Route::post('/{chat}/update', [ChatController::class, 'update']);
     });
 
     Route::prefix('/message')->group(function () {

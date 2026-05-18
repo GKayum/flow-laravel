@@ -8,7 +8,7 @@ import MessageField from '../MessageField/MessageField'
 import { api, handlerApiError } from '../../services/api'
 import { useChat } from '../../contexts/ChatContext'
 
-export default function ChatWindow() {
+export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose }) {
     const { selectedChat, onCloseChat } = useChat()
     const [messages, setMessages] = useState([])
     const [messagesLoading, setMessagesLoading] = useState(true)
@@ -53,7 +53,13 @@ export default function ChatWindow() {
     return (
         <div className={styles.chat}>
             <header className={styles.chat__header}>
-                <div className={styles.info}>
+                <div 
+                    className={styles.info} 
+                    onClick={() => {
+                        onChatTabChange('chat')
+                        onOpenChatSidebar()
+                    }}
+                >
                     <Avatar user={selectedChat} size="2.625rem" fontSize="1.3125rem" />
                     <div className={styles.content}>
                         <span className={styles.name}>{selectedChat.name}</span>
@@ -62,7 +68,13 @@ export default function ChatWindow() {
                     </div>
                 </div>
                 <div className={styles.actions}>
-                    <button className={styles.btn} onClick={onCloseChat}>
+                    <button 
+                        className={styles.btn} 
+                        onClick={() => {
+                            onClose()
+                            onCloseChat()
+                        }}
+                    >
                         <X />
                     </button>
                 </div>
@@ -88,42 +100,4 @@ export default function ChatWindow() {
             </footer>
         </div>
     )
-
-    // return (
-        // <div className={styles.main}>
-        //     <header className={styles.main__header}>
-        //         <CircleUser  className={styles.user_icon} />
-        //         <div className={styles.info}>
-        //             <span className={styles.name}>{selectedChat.name}</span>
-        //             <span className={styles.messages}>{messages.length} сообщений</span>
-        //         </div>
-        //         <button onClick={onCloseChat} className={styles.close_btn}>
-        //             <X />
-        //         </button>
-        //     </header>
-        //     <main className={styles.main__body}>
-        //         {loading ? (
-        //             <div className={styles.loader_box}>
-        //                 <Loader />
-        //             </div>
-        //         ) : (
-        //             messages.length > 0 ? (
-        //                 <>
-        //                 <MessageList messages={messages} />
-        //                 <div ref={messageEndRef} />
-        //                 </>
-        //             ) : (
-        //                 <div className={styles.not_msgs_block}>
-        //                     <h2>Здесь пока сообщений нет</h2>
-        //                     <p>Отправьте сообщение</p>
-        //                     <div ref={messageEndRef} />
-        //                 </div>
-        //             )
-        //         )}
-        //     </main>
-        //     <footer className={styles.main__footer}>
-        //         <MessageInput onSendMessage={handleSendMessage} />
-        //     </footer>
-        // </div>
-    // )
 }
