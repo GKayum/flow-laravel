@@ -14,7 +14,10 @@ use Illuminate\Support\Str;
 class ChatController extends Controller
 {
     public function list(Request $request) {
-        $chats = $request->user()->chats()->latest()->get();
+        $chats = $request->user()->chats()
+            ->with('users')
+            ->latest()
+            ->get();
         return response()->json(
             ChatResource::collection($chats)
         );
@@ -64,7 +67,6 @@ class ChatController extends Controller
 
     public function update(Request $request, Chat $chat) {
         $data = $request->all();
-        $user = $request->user();
         
         if (isset($data['avatar']) && $data['avatar'] === $chat->avatar) {
             unset($data['avatar']);
@@ -87,6 +89,8 @@ class ChatController extends Controller
         }
 
         $chat->update($validated);
+
+        $chat->load('users'); // Eager Loading
 
         return response()->json([
             'message' => 'Данные изменены',

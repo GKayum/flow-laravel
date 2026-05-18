@@ -19,6 +19,7 @@ class ChatResource extends JsonResource
             'name' => $this->name,
             'avatar' => $this->avatar,
             'is_group' => $this->is_group,
+            'members' => UserResource::collection($this->whenLoaded('users')),
         ];
     }
 }

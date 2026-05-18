@@ -22,6 +22,7 @@ class UserResource extends JsonResource
             'avatar' => $this->avatar,
             'dateOfBirth' => $this->date_of_birth,
             // 'dateOfBirth' => Carbon::parse($this->date_of_birth)->format('d.m.Y'),
+            'role' => $this->pivot ? $this->pivot->role : null,
         ];
     }
 }

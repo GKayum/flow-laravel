@@ -29,16 +29,5 @@ export function useChatsPage() {
         openSidebar,
         closeSidebar,
         onTabChange,
-
-        // sidebarOpen,
-        // chatSidebarOpen,
-        // activeTab,
-        // chatActiveTab,
-        // openSidebar,
-        // closeSidebar,
-        // openChatSidebar,
-        // closeChatSidebar,
-        // onTabChange,
-        // onChatTabChange,
     }
 }

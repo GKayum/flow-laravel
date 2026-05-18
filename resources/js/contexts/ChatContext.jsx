@@ -11,8 +11,8 @@ export function ChatProvider({ children }) {
     useEffect(() => {
         api.get('/api/chat/list')
             .then(response => {
-                console.log(response);
                 setChats(response.data)
+                console.log('chats: ', response.data);
             })
             .catch(error => {
                 console.error('Chats load error:', error.response?.status, error.response?.data)

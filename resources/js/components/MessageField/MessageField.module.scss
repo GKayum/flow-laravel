@@ -6,25 +6,26 @@
     // .messageInput {
     // }
 
-    .pickerContainer {
-        .btn {
-            padding: 5px;
-            border-radius: 50%;
-            cursor: pointer;
+    .btn {
+        padding: 5px;
+        border-radius: 50%;
+        cursor: pointer;
 
-            @include flex-center;
+        @include flex-center;
 
-            &:hover {
-                background-color: var(--color-grey-3);
-            }
-
-            &.active {
-                svg {
-                    color: var(--color-purple);
-                }
-            }
+        &:hover {
+            background-color: var(--color-grey-3);
         }
 
+        &.active {
+            svg {
+                color: var(--color-purple);
+            }
+        }
+    }
+
+    .pickerContainer {
+        
         .pickerBlock {
             position: absolute;
             z-index: 20;
