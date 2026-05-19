@@ -1,5 +1,5 @@
 import Cropper from "react-easy-crop"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Loader } from "../Loader/Loader"
 import { Camera, Check, X } from "lucide-react"
 import styles from "./GroupAvatarCropper.module.scss"
@@ -13,6 +13,11 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
     const [crop, setCrop] = useState({x: 0, y: 0})
     const [zoom, setZoom] = useState(1)
     const [croppedArea, setCroppedArea] = useState(null)
+
+    useEffect(() => {
+        setPreviewUrl(null)
+        // setLoading(false)
+    }, [avatar])
 
     const onInputChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -69,6 +74,8 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
         }
     }
 
+    const currentAvatarSrc = previewUrl || avatar
+
     return (
         <div className={styles.avatarCropperContainer}>
             {image ? (
@@ -121,10 +128,16 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
                     )}
                 </button>
                 <div className={styles.container}>
-                    {!loading && previewUrl && (
+                    {/* {!loading && previewUrl && (
                         <img src={previewUrl} alt="Предпросмотр изображения" />
                     )}
-                    {avatar && <img src={avatar} /> }
+                    {avatar && <img src={avatar} /> } */}
+                    {currentAvatarSrc && (
+                        <img
+                            src={currentAvatarSrc}
+                            alt="Аватар чата"
+                        />
+                    )}
                 </div>
                 </>
             )}

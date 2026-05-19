@@ -59,6 +59,8 @@ class ChatController extends Controller
         
         $chat->users()->sync($syncData);
 
+        $chat->load('users'); // Eager Loading
+
         return response()->json([
             'message' => 'Групповой чат успешно создан!',
             'chat' => new ChatResource($chat),

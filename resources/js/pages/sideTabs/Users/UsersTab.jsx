@@ -34,11 +34,11 @@ export default function UsersTab({ onClose }) {
 
     }, [debouncedValue])
 
-    const handleClick = ({ user, isUser }) => {
-        onSelectChat({ user, isUser })
-        onClose()
-        setValue('')
-    }
+    // const handleClick = ({ user, isUser }) => {
+    //     onSelectChat({ user, isUser })
+    //     onClose()
+    //     setValue('')
+    // }
     
     return (
         <>
@@ -46,17 +46,15 @@ export default function UsersTab({ onClose }) {
             <SearchField value={value} setValue={setValue} />
         </TabHeader>
         <div className={styles.main}>
-            {users && (
-                users.map((user) => (
-                    <button className={styles.item} key={user.id} onClick={() => handleClick({ user: user, isUser: true })}>
-                        <Avatar user={user} size="2.625rem" fontSize="1.3rem" />
-                        <div className={styles.item__body}>
-                            <span className={styles.content}>{user.name}</span>
-                            <label className={styles.label}>был недавно</label>
-                        </div>
-                    </button>
-                ))
-            )}
+            {users.map((user) => (
+                <button className={styles.item} key={user.id}>
+                    <Avatar user={user} size="2.625rem" fontSize="1.3rem" />
+                    <div className={styles.item__body}>
+                        <span className={styles.content}>{user.name}</span>
+                        <label className={styles.label}>был недавно</label>
+                    </div>
+                </button>
+            ))}
         </div>
         </>
     )

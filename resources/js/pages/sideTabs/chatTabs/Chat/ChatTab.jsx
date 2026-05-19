@@ -3,9 +3,12 @@ import styles from "./ChatTab.module.scss"
 import { Pen } from "lucide-react"
 import TabHeader from "../../../../components/TabHeader/TabHeader"
 import { useChat } from "../../../../contexts/ChatContext"
+import { usePlural } from "../../../../hooks/usePlural"
 
 export default function ChatTab({ onChatTabChange, onClose }) {
     const { selectedChat } = useChat()
+
+    const memberWord = usePlural(selectedChat.members.length, ['участник', 'участника', 'участников'])
     
     if (!selectedChat) return
 
@@ -23,7 +26,7 @@ export default function ChatTab({ onChatTabChange, onClose }) {
             <div className={styles.avatarContainer}>
                 <Avatar user={selectedChat} size="120px" fontSize="40px" />
                 <span className={styles.avatarContainer__name}>{selectedChat.name}</span>
-                <span className={styles.avatarContainer__members}>{selectedChat.members.length} участников</span>
+                <span className={styles.avatarContainer__members}>{selectedChat.members.length} {memberWord}</span>
             </div>
             <div className={styles.body}>
                 <div className={styles.membersContainer}>

@@ -11,7 +11,7 @@ import GroupAvatarCropper from "../../../../components/UI/GroupAvatarCropper/Gro
 import { CircleCheck } from "lucide-react"
 
 export default function EditChatTab({ onClose }) {
-    const { selectedChat, onSelectChat } = useChat()
+    const { selectedChat, onSelectChat, setChats } = useChat()
     const [formData, setFormData] = useState({
         avatar: '',
         name: '',
@@ -46,7 +46,18 @@ export default function EditChatTab({ onClose }) {
             const response = await api.post(`/api/chat/${selectedChat.id}/update`, data, {
                 headers: {'Content-Type' : 'multipart/form-data'}
             })
-            onSelectChat(response.data.chat)
+
+            const updatedChatData = response.data.chat
+
+            setChats(prevChats =>
+                prevChats.map(chat =>
+                    chat.id === selectedChat.id
+                        ? { ...chat, ...updatedChatData }
+                        : chat
+                )
+            )
+
+            onSelectChat(updatedChatData)
         } catch (error) {
             handlerApiError(error, { setValidationErrors, setError })
         } finally {
@@ -65,7 +76,18 @@ export default function EditChatTab({ onClose }) {
         try {
             await api.get('/sanctum/csrf-cookie')
             const response = await api.post(`/api/chat/${selectedChat.id}/update`, { name: formData.name })
-            onSelectChat(response.data.chat)
+
+            const updatedChatData = response.data.chat
+
+            setChats(prevChats =>
+                prevChats.map(chat =>
+                    chat.id === selectedChat.id
+                        ? { ...chat, ...updatedChatData }
+                        : chat
+                )
+            )
+
+            onSelectChat(updatedChatData)
             setMessage(response.data.message)            
         } catch (error) {
             handlerApiError(error, { setValidationErrors, setError })
@@ -83,7 +105,7 @@ export default function EditChatTab({ onClose }) {
             <div className={styles.avatarContainer}>
                 <GroupAvatarCropper 
                     onChangeAvatar={blob => handleChangeAvatar(blob)}
-                    avatar={selectedChat.avatar} 
+                    avatar={selectedChat.avatar}
                 />
                 <span className={styles.avatarContainer__name}>{selectedChat.name}</span>
             </div>

@@ -7,11 +7,14 @@ import MessageList from '../MessageList/MessageList'
 import MessageField from '../MessageField/MessageField'
 import { api, handlerApiError } from '../../services/api'
 import { useChat } from '../../contexts/ChatContext'
+import { usePlural } from '../../hooks/usePlural'
 
 export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose }) {
     const { selectedChat, onCloseChat } = useChat()
     const [messages, setMessages] = useState([])
     const [messagesLoading, setMessagesLoading] = useState(true)
+
+    const messageWord = usePlural(messages.length, ['сообщение', 'сообщения', 'сообщений'])
 
     useEffect(() => {
         if (!selectedChat) return
@@ -64,7 +67,7 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
                     <div className={styles.content}>
                         <span className={styles.name}>{selectedChat.name}</span>
                         {/* <span className={styles.messages}>{messages.length} сообщений</span> */}
-                        <span className={styles.messages}>{!messagesLoading ? `${messages.length} сообщений` : 'загрузка...'}</span>
+                        <span className={styles.messages}>{!messagesLoading ? `${messages.length} ${messageWord}` : 'загрузка...'}</span>
                     </div>
                 </div>
                 <div className={styles.actions}>
