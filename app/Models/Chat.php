@@ -13,6 +13,10 @@ class Chat extends Model
         'created_by',
     ];
 
+    public function latestMessage() {
+        return $this->hasOne(Message::class)->latest();
+    }
+
     public function messages() {
         return $this->hasMany(Message::class);
     }

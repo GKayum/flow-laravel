@@ -10,7 +10,7 @@ import { useChat } from '../../contexts/ChatContext'
 import { usePlural } from '../../hooks/usePlural'
 
 export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose }) {
-    const { selectedChat, onCloseChat } = useChat()
+    const { selectedChat, onCloseChat, updateChat } = useChat()
     const [messages, setMessages] = useState([])
     const [messagesLoading, setMessagesLoading] = useState(true)
 
@@ -38,7 +38,59 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         try {
             await api.get('/sanctum/csrf-cookie')
             const response = await api.post(`/api/message/${selectedChat.id}/send`, { content })
+
             setMessages(prev => [...prev, response.data])
+
+            updateChat({
+                id: selectedChat.id,
+                latestMessage: response.data
+            })
+        } catch (error) {
+            handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+        }
+    }
+
+    const handleDeleteMessage = async (messageId) => {
+        try {
+            await api.delete(`/api/message/${messageId}/delete`)
+
+            setMessages(prev => {
+                const isLatestMessage = prev.length > 0 && prev[prev.length - 1].id === messageId;
+                const updated = prev.filter(m => m.id !== messageId)
+
+                if (isLatestMessage) {
+                    const newLatest = updated.length > 0 ? updated[updated.length - 1] : null
+                    
+                    updateChat({
+                        id: selectedChat.id,
+                        latestMessage: newLatest,
+                    })
+                }
+
+                return updated
+            })
+        } catch (error) {
+            handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+        }
+    }
+
+    const handleEditMessage = async (messageId, newContent) => {
+        try {
+            const response = await api.put(`/api/message/${messageId}/update`, { content: newContent })
+
+            setMessages(prev => {
+                const isLatestMessage = prev.length > 0 && prev[prev.length - 1].id === messageId;
+                const updated = prev.map(m => (m.id === messageId ? { ...m, ...response.data } : m))
+
+                if (isLatestMessage) {
+                    updateChat({
+                        id: selectedChat.id,
+                        latestMessage: response.data
+                    })
+                }
+
+                return updated
+            })
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }
@@ -66,7 +118,6 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
                     <Avatar user={selectedChat} size="2.625rem" fontSize="1.3125rem" />
                     <div className={styles.content}>
                         <span className={styles.name}>{selectedChat.name}</span>
-                        {/* <span className={styles.messages}>{messages.length} сообщений</span> */}
                         <span className={styles.messages}>{!messagesLoading ? `${messages.length} ${messageWord}` : 'загрузка...'}</span>
                     </div>
                 </div>
@@ -89,7 +140,11 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
                     </div>
                 ) : (
                     messages.length > 0 ? (
-                        <MessageList messages={messages} />
+                        <MessageList 
+                            messages={messages}
+                            onDeleteMessage={handleDeleteMessage}
+                            onEditMessage={handleEditMessage}
+                        />
                     ) : (
                         <div className={styles.not_msgs_block}>
                             <h2>Здесь пока сообщений нет</h2>

@@ -20,6 +20,7 @@ class ChatResource extends JsonResource
             'avatar' => $this->avatar,
             'is_group' => $this->is_group,
             'members' => UserResource::collection($this->whenLoaded('users')),
+            'latestMessage' => MessageResource::make($this->whenLoaded('latestMessage'))
         ];
     }
 }

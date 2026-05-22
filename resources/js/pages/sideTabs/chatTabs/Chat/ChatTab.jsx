@@ -8,9 +8,9 @@ import { usePlural } from "../../../../hooks/usePlural"
 export default function ChatTab({ onChatTabChange, onClose }) {
     const { selectedChat } = useChat()
 
+    if (!selectedChat) return null
+
     const memberWord = usePlural(selectedChat.members.length, ['участник', 'участника', 'участников'])
-    
-    if (!selectedChat) return
 
     return (
         <>

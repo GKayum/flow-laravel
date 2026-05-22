@@ -20,6 +20,16 @@ export function ChatProvider({ children }) {
             .finally(() => setChatsLoading(false))
     }, [])
 
+    const updateChat = useCallback((updatedChat) => {
+        setChats(prevChats =>
+            prevChats.map(chat =>
+                chat.id === updatedChat.id
+                    ? { ...chat, ...updatedChat }
+                    : chat
+            )
+        )
+    }, [])
+
     const onSelectChat = useCallback((chat) => {
         setSelectedChat(chat)
     }, [])
@@ -32,6 +42,7 @@ export function ChatProvider({ children }) {
             chatsLoading,
             selectedChat,
             setChats,
+            updateChat,
             onSelectChat,
             onCloseChat: closeChat,
         }}>

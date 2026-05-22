@@ -15,7 +15,7 @@ class ChatController extends Controller
 {
     public function list(Request $request) {
         $chats = $request->user()->chats()
-            ->with('users')
+            ->with(['users', 'latestMessage'])
             ->latest()
             ->get();
         return response()->json(

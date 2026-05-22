@@ -13,6 +13,7 @@ export default function SearchField({ value, setValue }) {
                     value={value}
                     onChange={e => setValue(e.target.value)}
                 />
+
                 {value ? (
                     <X className={styles.search__icon} onClick={() => setValue('')} />
                 ) : (

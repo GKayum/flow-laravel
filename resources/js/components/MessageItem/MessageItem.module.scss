@@ -26,11 +26,80 @@
                 line-height: 1.3;
                 color: #000;
                 overflow-wrap: break-word;
+                word-break: break-word;
+                white-space: pre-wrap;
             }
 
             .time {
                 font-size: 12px;
                 color: var(--color-grey-1);
+            }
+
+            .editContainer {
+                position: relative;
+                width: 100%;
+
+                .editInput {
+                    width: 100%;
+                    box-sizing: border-box;
+                    outline: none;
+                    border: 1px #D4D4DD solid;
+                    border-radius: 8px;
+                    padding: 8px 16px;
+                    font-family: inherit;
+                    font-size: 16px;
+                    color: #242424;
+                    transition: border .1s ease-in-out;
+                    word-break: break-word;
+                    white-space: pre-wrap;
+
+                    overflow: hidden;
+                    resize: none;
+
+                    &:hover {
+                        border-color: var(--color-grey-1);
+                    }
+                    &:focus {
+                        border-color: var(--color-purple);
+                    }
+                }
+
+                .actions {
+                    position: absolute;
+                    bottom: 0;
+                    left: 100%;
+                    margin-left: 5px;
+
+                    display: flex;
+                    gap: 3px;
+
+                    .btn {
+                        @include flex-center;
+
+                        border-radius: 50%;
+                        padding: .2rem;
+                        cursor: pointer;
+                        transition: opacity .1s ease-in-out;
+
+                        &.confirm {
+                            background-color: var(--color-purple);
+                        }
+                        &.cancel {
+                            background-color: var(--color-red-1);
+                        }
+
+                        &:hover {
+                            opacity: .8;
+                        }
+
+                        .icon {
+                            width: 16px;
+                            height: 16px;
+                            stroke-width: 3px;
+                            color: #fff;
+                        }
+                    }
+                }
             }
         }
     }

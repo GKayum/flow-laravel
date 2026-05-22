@@ -16,9 +16,12 @@ export default function ChatItem({ chat }) {
             <div className={styles.button__body}>
                 <div className={styles.button__header}>
                     <span className={styles.name}>{chat.name}</span>
-                    <span className={styles.time}>17:00</span>
+                    <span className={styles.time}>{chat.latestMessage?.time ?? '--:--'}</span>
                 </div>
-                <span className={styles.message}>Последнее сообщение</span>
+                <div className={styles.messageBlock}>
+                    {chat?.latestMessage && <span className={styles.name}>{`${chat.latestMessage.user.name}:\u00A0`}</span>}
+                    <span className={styles.message}>{chat.latestMessage?.content ?? 'Нет сообщений'}</span>
+                </div>
             </div>
         </button>
     )

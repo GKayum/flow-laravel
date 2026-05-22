@@ -30,5 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('/message')->group(function () {
         Route::get('/{chat}/list', [MessageController::class, 'list']);
         Route::post('/{chat}/send', [MessageController::class,'send']);
+        Route::delete('/{message}/delete', [MessageController::class, 'delete'])->middleware('can:delete,message');
+        Route::put('/{message}/update', [MessageController::class, 'update'])->middleware('can:update,message');
     });
 });

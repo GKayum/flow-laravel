@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MessageResource;
 use App\Models\Chat;
+use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -34,5 +35,29 @@ class MessageController extends Controller
         $message->load('user');
 
         return response()->json(new MessageResource($message));
+    }
+
+    public function update(Request $request, Message $message) {
+        $validator = Validator::make($request->all(), [
+            'content' => 'required|string',
+        ]);
+
+        $validated = $validator->validated();
+
+        $message->update([
+            'content' => $validated['content'],
+        ]);
+
+        return response()->json(
+            new MessageResource($message)
+        );
+    }
+
+    public function delete(Request $request, Message $message) {
+        $message->delete();
+
+        return response()->json([
+            'message' => 'Сообщение успешно удалено'
+        ]);
     }
 }

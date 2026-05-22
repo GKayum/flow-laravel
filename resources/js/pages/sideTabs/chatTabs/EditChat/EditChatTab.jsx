@@ -11,7 +11,7 @@ import GroupAvatarCropper from "../../../../components/UI/GroupAvatarCropper/Gro
 import { CircleCheck } from "lucide-react"
 
 export default function EditChatTab({ onClose }) {
-    const { selectedChat, onSelectChat, setChats } = useChat()
+    const { selectedChat, onSelectChat, updateChat } = useChat()
     const [formData, setFormData] = useState({
         avatar: '',
         name: '',
@@ -49,13 +49,7 @@ export default function EditChatTab({ onClose }) {
 
             const updatedChatData = response.data.chat
 
-            setChats(prevChats =>
-                prevChats.map(chat =>
-                    chat.id === selectedChat.id
-                        ? { ...chat, ...updatedChatData }
-                        : chat
-                )
-            )
+            updateChat(updatedChatData)
 
             onSelectChat(updatedChatData)
         } catch (error) {
@@ -79,13 +73,15 @@ export default function EditChatTab({ onClose }) {
 
             const updatedChatData = response.data.chat
 
-            setChats(prevChats =>
-                prevChats.map(chat =>
-                    chat.id === selectedChat.id
-                        ? { ...chat, ...updatedChatData }
-                        : chat
-                )
-            )
+            // setChats(prevChats =>
+            //     prevChats.map(chat =>
+            //         chat.id === selectedChat.id
+            //             ? { ...chat, ...updatedChatData }
+            //             : chat
+            //     )
+            // )
+
+            updateChat(updatedChatData)
 
             onSelectChat(updatedChatData)
             setMessage(response.data.message)            

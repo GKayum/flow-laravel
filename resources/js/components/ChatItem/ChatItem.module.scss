@@ -59,12 +59,20 @@
             color: var(--color-grey-1);
         }
     }
-    
-    .message {
-        color: var(--color-grey-1);
-        text-align: start;
+
+    .messageBlock {
+        display: flex;
+        justify-content: start;
+
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
+        
+        .message {
+            color: var(--color-grey-1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
+    
 }
