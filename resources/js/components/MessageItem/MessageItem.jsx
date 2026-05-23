@@ -2,26 +2,32 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Avatar from "../UI/Avatar/Avatar"
 import styles from "./MessageItem.module.scss"
 import ContextMenu from "../UI/ContextMenu/ContextMenu"
-import { Pen } from "lucide-react"
 import { Trash } from "lucide-react"
 import { Check } from "lucide-react"
 import { X } from "lucide-react"
+import { Pencil } from "lucide-react"
+import { Undo2 } from "lucide-react"
+import { Copy } from "lucide-react"
+import { useCopyToClipboard } from "../../hooks/useCopyToClipboard"
 
 export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }) {
     const [contextMenu, setContextMenu] = useState(null)
     const [isEditing, setIsEditing] = useState(false)
     const [editContent, setEditContent] = useState(message.content)
     const editDivRef = useRef(null)
+    const { copy } = useCopyToClipboard()
 
     useEffect(() => {
         if (isEditing && editDivRef.current) {
-            editDivRef.current.focus({ preventScroll: true })
-            const range = document.createRange()
-            range.selectNodeContents(editDivRef.current)
-            range.collapse(false)
-            const sel = window.getSelection()
-            sel.removeAllRanges()
-            sel.addRange(range)
+            requestAnimationFrame(() => {
+                editDivRef.current.focus({ preventScroll: true })
+                const range = document.createRange()
+                range.selectNodeContents(editDivRef.current)
+                range.collapse(false)
+                const sel = window.getSelection()
+                sel.removeAllRanges()
+                sel.addRange(range)
+            })
         }
     }, [isEditing])
 
@@ -76,23 +82,26 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }
     }
 
     const menuItems = useMemo(() => [
-        { icon: Pen, label: 'Редактировать', action: startEdit },
+        { icon: Undo2, label: 'Ответить', action: () => {} },
+        { icon: Copy, label: 'Копировать', action: () => copy(message.content) },
+        { icon: Pencil, label: 'Изменить', action: startEdit },
         { type: 'danger', icon: Trash, label: 'Удалить', action: handleDelete },
     ], [message.id, message.content, onDelete])
 
     const itemClass = `${styles.messageItem} ${isCurrentUser ? styles.currentUser : ''}`
 
     return (
+        <>
+        {contextMenu && (
+            <ContextMenu 
+                x={contextMenu.x}
+                y={contextMenu.y}
+                onClose={closeContextMenu}
+                items={menuItems}
+            />
+        )}
+        
         <div className={itemClass} onContextMenu={handleContextMenu}>
-            {contextMenu && (
-                <ContextMenu 
-                    x={contextMenu.x}
-                    y={contextMenu.y}
-                    onClose={closeContextMenu}
-                    items={menuItems}
-                />
-            )}
-
             {!isCurrentUser && <Avatar user={message.user} size="2.5rem" fontSize="1.25rem" />}
             <div className={styles.content}>
                 {!isCurrentUser && <span className={styles.name}>{message.user.name}</span>}
@@ -125,5 +134,6 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }
                 </div>
             </div>
         </div>
+        </>
     )
 }

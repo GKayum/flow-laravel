@@ -64,6 +64,10 @@
                     &.danger {
                         color: var(--color-red-1);
 
+                        &:hover {
+                            background-color: var(--color-red-2);
+                        }
+
                         .img {
                             color: red;
                         }

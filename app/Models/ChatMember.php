@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class ChatMember extends Pivot
 {
+    protected $table = 'chat_members';
+
     protected $fillable = [
         'role',
     ];

@@ -1,6 +1,5 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from "react"
 import styles from "./ContextMenu.module.scss"
-import { UserRound } from "lucide-react"
 
 export default memo(function ContextMenu({ x, y, onClose, items  }) {
     const menuRef = useRef(null)

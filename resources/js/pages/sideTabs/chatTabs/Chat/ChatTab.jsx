@@ -4,13 +4,49 @@ import { Pen } from "lucide-react"
 import TabHeader from "../../../../components/TabHeader/TabHeader"
 import { useChat } from "../../../../contexts/ChatContext"
 import { usePlural } from "../../../../hooks/usePlural"
+import MemberItem from "../../../../components/MemberItem/MemberItem"
+import { api, handlerApiError } from "../../../../services/api"
+import { useCallback } from "react"
 
 export default function ChatTab({ onChatTabChange, onClose }) {
-    const { selectedChat } = useChat()
+    const { selectedChat, updateChat } = useChat()
 
     if (!selectedChat) return null
 
     const memberWord = usePlural(selectedChat.members.length, ['участник', 'участника', 'участников'])
+
+    const handleDeleteUser = useCallback(async (memberId) => {
+        try {
+            await api.delete(`/api/chat/${selectedChat.id}/member/${memberId}`)
+
+            const updatedMembers = selectedChat.members.filter(m => m.id !== memberId)
+            updateChat({
+                id: selectedChat.id,
+                members: updatedMembers,
+            })
+        } catch (error) {
+            handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+        }
+    }, [selectedChat, updateChat])
+
+    const handleChangeRole = useCallback(async (memberId, newRole = 'admin') => {
+        try {
+            const response = await api.put(`/api/chat/${selectedChat.id}/member/${memberId}/role`, {
+                role: newRole,
+            })
+
+            const updatedMember = response.data
+            const updatedMembers = selectedChat.members.map(m => 
+                m.id === memberId ? { ...m, ...updatedMember } : m
+            )
+            updateChat({
+                id: selectedChat.id,
+                members: updatedMembers,
+            })
+        } catch (error) {
+            handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+        }
+    }, [selectedChat, updateChat])
 
     return (
         <>
@@ -31,13 +67,12 @@ export default function ChatTab({ onChatTabChange, onClose }) {
             <div className={styles.body}>
                 <div className={styles.membersContainer}>
                     {selectedChat.members.map((member) => (
-                        <button className={styles.item} key={member.id}>
-                            <Avatar user={member} size="2.625rem" fontSize="1.3rem" />
-                            <div className={styles.item__body}>
-                                <span className={styles.content}>{member.name}</span>
-                                <label className={styles.label}>был недавно</label>
-                            </div>
-                        </button>
+                        <MemberItem
+                            key={member.id}
+                            member={member}
+                            onDelete={handleDeleteUser}
+                            onChangeRole={handleChangeRole}
+                        />
                     ))}
                 </div>
             </div>

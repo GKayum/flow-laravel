@@ -11,7 +11,7 @@ import GroupAvatarCropper from "../../../../components/UI/GroupAvatarCropper/Gro
 import { CircleCheck } from "lucide-react"
 
 export default function EditChatTab({ onClose }) {
-    const { selectedChat, onSelectChat, updateChat } = useChat()
+    const { selectedChat, updateChat } = useChat()
     const [formData, setFormData] = useState({
         avatar: '',
         name: '',
@@ -47,11 +47,7 @@ export default function EditChatTab({ onClose }) {
                 headers: {'Content-Type' : 'multipart/form-data'}
             })
 
-            const updatedChatData = response.data.chat
-
-            updateChat(updatedChatData)
-
-            onSelectChat(updatedChatData)
+            updateChat(response.data.chat)
         } catch (error) {
             handlerApiError(error, { setValidationErrors, setError })
         } finally {
@@ -71,20 +67,12 @@ export default function EditChatTab({ onClose }) {
             await api.get('/sanctum/csrf-cookie')
             const response = await api.post(`/api/chat/${selectedChat.id}/update`, { name: formData.name })
 
-            const updatedChatData = response.data.chat
+            updateChat(response.data.chat)
 
-            // setChats(prevChats =>
-            //     prevChats.map(chat =>
-            //         chat.id === selectedChat.id
-            //             ? { ...chat, ...updatedChatData }
-            //             : chat
-            //     )
-            // )
-
-            updateChat(updatedChatData)
-
-            onSelectChat(updatedChatData)
-            setMessage(response.data.message)            
+            setMessage(response.data.message)
+            setTimeout(() => {
+                setMessage('')            
+            }, 2000);
         } catch (error) {
             handlerApiError(error, { setValidationErrors, setError })
         } finally {
@@ -115,7 +103,11 @@ export default function EditChatTab({ onClose }) {
                         value={formData.name}
                         style={validationErrors.name ? { borderColor: '#FF0001' } : {}}
                     />
-                    <button type="submit" className={`${styles.submitButton} ${formData.name ? styles.visible : ''}`}>
+                    <button 
+                        type="submit" 
+                        className={`${styles.submitButton} ${formData.name ? styles.visible : ''}`}
+                        disabled={submitting}
+                    >
                         <CircleCheck />
                     </button>
                 </form>

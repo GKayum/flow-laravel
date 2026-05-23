@@ -88,9 +88,22 @@
                     align-items: start;
 
                     line-height: 1.5;
+                    width: 100%;
 
-                    // .content {
-                    // }
+                    .infoBlock {
+                        display: flex;
+                        justify-content: space-between;
+                        width: 100%;
+
+                        // .content {
+                        // }
+                        
+                        .role {
+                            font-size: 14px;
+                            color: var(--color-grey-1);
+                        }
+                    }
+
 
                     .label {
                         font-size: 14px;

@@ -76,10 +76,12 @@ export default function EditProfileTab({ onClose }) {
             const response = await api.post('/api/user/update', data)
             setUser(response.data.user)
             setMessage(response.data.message)            
+            setTimeout(() => {
+                setMessage('')            
+            }, 2000);
         } catch (error) {
             handlerApiError(error, { setValidationErrors, setError })
             console.log(error);
-            
         } finally {
             setSubmitting(false)
         }

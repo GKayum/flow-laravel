@@ -25,6 +25,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/list', [ChatController::class, 'list']);
         Route::post('/create', [ChatController::class, 'create']);
         Route::post('/{chat}/update', [ChatController::class, 'update'])->middleware('can:update,chat');
+
+        Route::delete('/{chat}/member/{member}', [ChatController::class, 'removeMember']);
+        Route::put('/{chat}/member/{member}/role', [ChatController::class, 'changeRole'])->middleware('can:changeRole,chat');
     });
 
     Route::prefix('/message')->group(function () {

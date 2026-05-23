@@ -4,9 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ChatResource;
+use App\Http\Resources\UserResource;
 use App\Models\Chat;
+use App\Models\ChatMember;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -95,8 +99,34 @@ class ChatController extends Controller
         $chat->load('users'); // Eager Loading
 
         return response()->json([
-            'message' => 'Данные изменены',
+            'message' => 'Данные чата изменены',
             'chat' => new ChatResource($chat),
         ]);
+    }
+
+    public function removeMember(Chat $chat, ChatMember $member) {
+        Gate::authorize('removeMember', [$chat, $member]);
+
+        $chat->users()->detach($member);
+
+        return response()->json(['message' => 'Участник чата удален']);
+    }
+
+    public function changeRole(Request $request, Chat $chat, ChatMember $member) {
+        $validator = Validator::make($request->all(), [
+            'role' => 'required|in:admin,member',
+        ]);
+
+        $validated = $validator->validated();
+
+        $chat->users()->updateExistingPivot($member->id, [
+            'role' => $validated['role'],
+        ]);
+
+        $updatedUser = $chat->users()->where('user_id', $member->id)->first();
+
+        return response()->json(
+            new UserResource($updatedUser)
+        );
     }
 }

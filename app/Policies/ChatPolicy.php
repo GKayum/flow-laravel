@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Chat;
+use App\Models\ChatMember;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
@@ -67,5 +68,46 @@ class ChatPolicy
     public function forceDelete(User $user, Chat $chat): bool
     {
         return false;
+    }
+
+    public function changeRole(User $user, Chat $chat): Response
+    {
+        return $chat->users()
+            ->where('user_id', $user->id)
+            ->wherePivot('role', 'owner')
+            ->exists()
+                ? Response::allow()
+                : Response::deny('У вас нет прав для изменения ролей');
+    }
+
+    public function removeMember(User $user, Chat $chat, ChatMember $member): Response
+    {
+        $currentUserRole = $chat->users()
+            ->where('user_id', $user->id)
+            ->first()?->pivot?->role;
+
+        // Если роль не найдена - доступ запрещен
+        if (!$currentUserRole) {
+            return Response::deny('Вы не состоите в чате');
+        }
+
+        if ($currentUserRole === 'owner') {
+            return Response::allow();
+        }
+
+        if ($currentUserRole === 'admin') {
+            if ($member) {
+                $memberRole = $chat->users()
+                    ->where('user_id', $member->id)
+                    ->first()?->pivot?->role;
+                
+                if ($memberRole === 'owner') {
+                    return Response::deny('Вы не можете удалить владельца чата');
+                }
+            }
+            return Response::allow();
+        }
+
+        return Response::deny('У вас нет прав на удаление участников');
     }
 }

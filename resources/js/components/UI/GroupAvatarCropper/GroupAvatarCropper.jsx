@@ -128,10 +128,6 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
                     )}
                 </button>
                 <div className={styles.container}>
-                    {/* {!loading && previewUrl && (
-                        <img src={previewUrl} alt="Предпросмотр изображения" />
-                    )}
-                    {avatar && <img src={avatar} /> } */}
                     {currentAvatarSrc && (
                         <img
                             src={currentAvatarSrc}
