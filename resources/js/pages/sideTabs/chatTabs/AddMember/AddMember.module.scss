@@ -1,0 +1,139 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 1.2rem;
+
+    position: relative;
+    margin: 0 1.2rem;
+    min-height: 0;
+
+    .body {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        min-height: 0;
+
+        &__block {
+            padding: 10px 0; 
+            border-bottom: 1px solid rgba($color: #191816, $alpha: .2);
+
+            &:last-child {
+                border-bottom: none;
+
+                display: flex;
+                min-height: 0;
+            }
+
+            .submitButton {
+                display: flex;
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                margin: 1.2rem;
+
+                cursor: pointer;
+                border-radius: 100%;
+                overflow: hidden;
+
+                opacity: 0;
+                transform: translateY(10px);
+                pointer-events: none;
+                transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+
+                &:hover {
+                    opacity: 1 !important;
+                }
+
+                &.visible {
+                    opacity: .95;
+                    transform: translateY(0);
+                    pointer-events: auto;
+                }
+
+                svg {
+                    width: 3.375rem /* 54px */;
+                    height: 3.375rem /* 54px */;
+                    background-color: var(--color-purple);
+                    color: #fff;
+                }
+            }
+
+            .membersContainer {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+
+                margin-top: 10px;
+
+                .memberButton {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+
+                    padding-right: 10px;
+                    border-radius: 20px;
+                    background-color: var(--color-grey-4);
+                    transition: background-color .1s ease-in-out;
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: var(--color-red-2);
+                    }
+
+                    .checkbox {
+                        display: none;
+                    }
+                }
+            }
+
+            .usersContainer {
+                overflow-y: auto;
+                width: 100%;
+                padding-right: 5px;
+
+                @include custom-scroll;
+
+                .userButton {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+
+                    width: 100%;
+                    padding: 5px 15px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    transition: background-color .1s ease-in-out;
+
+                    &:hover {
+                        background-color: var(--color-grey-3);
+                    }
+
+                    .checkbox {
+                        width: 1.25rem /* 20px */;
+                        height: 1.25rem /* 20px */;
+                        cursor: pointer;
+                        accent-color: var(--color-purple);
+                    }
+
+                    &__body {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: start;
+
+                        line-height: 1.5;
+
+                        // .content {
+                        // }
+
+                        .label {
+                            font-size: 14px;
+                            color: var(--color-grey-1);
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+}

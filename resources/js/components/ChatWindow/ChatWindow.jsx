@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import styles from './ChatWindow.module.scss'
 import { X } from 'lucide-react'
 import { Loader } from '../UI/Loader/Loader'
@@ -10,7 +10,7 @@ import { useChat } from '../../contexts/ChatContext'
 import { usePlural } from '../../hooks/usePlural'
 
 export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose }) {
-    const { selectedChat, onCloseChat, updateChat } = useChat()
+    const { selectedChat, selectedChatId, onCloseChat, updateChat } = useChat()
     const [messages, setMessages] = useState([])
     const [messagesLoading, setMessagesLoading] = useState(true)
 
@@ -32,7 +32,7 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
                 })
                 .finally(() => setMessagesLoading(false))
         })()
-    }, [selectedChat])
+    }, [selectedChatId])
 
     const handleSendMessage = async (content) => {
         try {
@@ -50,7 +50,7 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         }
     }
 
-    const handleDeleteMessage = async (messageId) => {
+    const handleDeleteMessage = useCallback(async (messageId) => {
         try {
             await api.delete(`/api/message/${messageId}/delete`)
 
@@ -72,9 +72,9 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }
-    }
+    }, [selectedChat, updateChat])
 
-    const handleEditMessage = async (messageId, newContent) => {
+    const handleEditMessage = useCallback(async (messageId, newContent) => {
         try {
             const response = await api.put(`/api/message/${messageId}/update`, { content: newContent })
 
@@ -94,7 +94,7 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }
-    }
+    }, [selectedChat, updateChat])
 
     if (!selectedChat) {
         return (

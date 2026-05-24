@@ -72,6 +72,8 @@ class ChatController extends Controller
     }
 
     public function update(Request $request, Chat $chat) {
+        Gate::authorize('update', [$chat]);
+
         $data = $request->all();
         
         if (isset($data['avatar']) && $data['avatar'] === $chat->avatar) {
@@ -104,6 +106,26 @@ class ChatController extends Controller
         ]);
     }
 
+    public function addMembers(Request $request, Chat $chat) {
+        Gate::authorize('update', [$chat]);
+
+        $validator = Validator::make($request->all(), [
+            'members' => 'required|array',
+            'members.*' => 'integer|exists:users,id', 
+        ]);
+
+        $validated = $validator->validated();
+
+        $chat->users()->syncWithoutDetaching($validated['members']);
+
+        $chat->load('users');
+
+        return response()->json([
+            'message' => 'Участники чата добавлены',
+            'members' => UserResource::collection($chat->users)
+        ]);
+    }
+
     public function removeMember(Chat $chat, ChatMember $member) {
         Gate::authorize('removeMember', [$chat, $member]);
 
@@ -113,6 +135,8 @@ class ChatController extends Controller
     }
 
     public function changeRole(Request $request, Chat $chat, ChatMember $member) {
+        Gate::authorize('changeRole', [$chat]);
+
         $validator = Validator::make($request->all(), [
             'role' => 'required|in:admin,member',
         ]);

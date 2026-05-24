@@ -7,6 +7,7 @@ import { usePlural } from "../../../../hooks/usePlural"
 import MemberItem from "../../../../components/MemberItem/MemberItem"
 import { api, handlerApiError } from "../../../../services/api"
 import { useCallback } from "react"
+import { UserRoundPlus } from "lucide-react"
 
 export default function ChatTab({ onChatTabChange, onClose }) {
     const { selectedChat, updateChat } = useChat()
@@ -75,6 +76,13 @@ export default function ChatTab({ onChatTabChange, onClose }) {
                         />
                     ))}
                 </div>
+                <button 
+                    type="button"
+                    className={styles.changeTabBtn}
+                    onClick={() => onChatTabChange('addMember')}
+                >
+                    <UserRoundPlus />
+                </button>
             </div>
         </div>
         </>

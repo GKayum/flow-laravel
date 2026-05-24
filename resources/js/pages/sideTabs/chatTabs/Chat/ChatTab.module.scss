@@ -31,9 +31,8 @@
     gap: 1.2rem;
 
     margin-top: 1.2rem;
-
     min-height: 0;
-    
+
     .avatarContainer {
         @include flex-center;
         flex-direction: column;
@@ -62,56 +61,34 @@
             padding: 10px 1.2rem;
 
             @include custom-scroll;
+        }
 
-            .item {
-                display: flex;
-                align-items: center;
-                gap: 20px;
+        .changeTabBtn {
+            @include flex-center;
 
-                width: 100%;
-                padding: 5px 15px;
-                border-radius: 10px;
-                cursor: pointer;
-                transition: background-color .1s ease-in-out;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            margin: 1.2rem;
 
-                &:hover {
-                    background-color: var(--color-grey-3);
-                }
+            width: 3.375rem /* 54px */;
+            height: 3.375rem /* 54px */;
+            
+            background-color: var(--color-purple);
+            opacity: .95;
+            border-radius: 100%;
+            cursor: pointer;
+            overflow: hidden;
+            transition: opacity 0.2s ease;
 
-                .icon {
-                    color: var(--color-grey-1);
-                }
-
-                &__body {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: start;
-
-                    line-height: 1.5;
-                    width: 100%;
-
-                    .infoBlock {
-                        display: flex;
-                        justify-content: space-between;
-                        width: 100%;
-
-                        // .content {
-                        // }
-                        
-                        .role {
-                            font-size: 14px;
-                            color: var(--color-grey-1);
-                        }
-                    }
-
-
-                    .label {
-                        font-size: 14px;
-                        color: var(--color-grey-1);
-                    }
-                }
+            &:hover {
+                opacity: 1;
             }
 
+            svg {
+                object-fit: cover;
+                color: #fff;
+            }
         }
     }
 }

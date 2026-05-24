@@ -5,6 +5,8 @@ import { Trash } from "lucide-react"
 import { useAuth } from "../../contexts/AuthContext"
 import ContextMenu from "../UI/ContextMenu/ContextMenu"
 import Avatar from "../UI/Avatar/Avatar"
+import { ShieldMinus } from "lucide-react"
+import { ShieldPlus } from "lucide-react"
 
 export default function MemberItem({ member, onDelete, onChangeRole }) {
     const { user } = useAuth()
@@ -20,11 +22,12 @@ export default function MemberItem({ member, onDelete, onChangeRole }) {
 
     const closeContextMenu = useCallback(() => setContextMenu(null), [])
 
-    const handleDelete = () => onDelete(member.id)
-    const handleChangeRole = () => onChangeRole(member.id, 'admin')
+    const handleDelete = useCallback(() => onDelete(member.id), [onDelete, member.id])
+    const handleChangeRole = useCallback((role) => onChangeRole(member.id, role), [onChangeRole, member.id])
 
     const menuItems = useMemo(() => [
-        { icon: ShieldUser, label: 'Сделать админом', action: handleChangeRole },
+        { icon: ShieldPlus, label: 'Сделать админом', action: () => handleChangeRole('admin') },
+        { icon: ShieldMinus, label: 'Ограничить права', action: () => handleChangeRole('member') },
         { type: 'danger', icon: Trash, label: 'Удалить из группы', action: handleDelete },
     ], [handleChangeRole, handleDelete])
 
