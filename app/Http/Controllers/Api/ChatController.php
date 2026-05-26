@@ -10,6 +10,7 @@ use App\Models\ChatMember;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -24,6 +25,43 @@ class ChatController extends Controller
             ->get();
         return response()->json(
             ChatResource::collection($chats)
+        );
+    }
+
+    public function personal(Request $request) {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id|not_in:' . Auth::id(),
+        ]);
+
+        $userId = (int) $validated['user_id'];
+        $currentUserId = (int) $request->user()->id;
+
+        // Сортировка ID для предотвращения deadlock при одновременных запросах
+        $userIds = [$currentUserId, $userId];
+        sort($userIds);
+
+        $chat = DB::transaction(function () use ($userIds) {
+            $existingChat = Chat::where('is_group', false)
+                ->whereHas('users', function ($q) use ($userIds) {
+                    $q->whereIn('user_id', $userIds);
+                }, '=', 2)
+                ->with('users')
+                ->first();
+
+            if ($existingChat) {
+                return $existingChat;
+            }
+
+            $newChat = Chat::create(['is_group', false]);
+
+            $newChat->users()->syncWithoutDetaching($userIds);
+
+            return $newChat->load('users');
+        });
+
+
+        return response()->json(
+            new ChatResource($chat)
         );
     }
 

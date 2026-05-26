@@ -33,7 +33,7 @@ export default function ChatList({ onOpenSidebar, onTabChange }) {
                                 <button 
                                     className={styles.item}
                                     onClick={() => {
-                                        onTabChange('users')
+                                        onTabChange('searchUsers')
                                         setDropdownOpen(false)
                                         onOpenSidebar()
                                     }}

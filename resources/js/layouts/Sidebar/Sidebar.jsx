@@ -1,8 +1,8 @@
 import styles from "./Sidebar.module.scss"
 import ProfileTab from "../../pages/sideTabs/Profile/ProfileTab"
 import EditProfileTab from "../../pages/sideTabs/EditProfile/EditProfileTab"
-import UsersTab from "../../pages/sideTabs/Users/UsersTab"
 import CreateGroupTab from "../../pages/sideTabs/CreateGroup/CreateGroupTab"
+import SearchTab from "../../pages/sideTabs/Search/SearchTab"
 
 export default function Sidebar({ open, onClose, activeTab, onTabChange }) {
     return (
@@ -17,8 +17,8 @@ export default function Sidebar({ open, onClose, activeTab, onTabChange }) {
                     return <ProfileTab onTabChange={onTabChange} onClose={onClose} />
                 case 'editProfile':
                     return <EditProfileTab onClose={onClose} />
-                case 'users':
-                    return <UsersTab onClose={onClose} />
+                case 'searchUsers':
+                    return <SearchTab onClose={onClose} />
                 case 'createGroup':
                     return <CreateGroupTab onClose={onClose} />
                 default:

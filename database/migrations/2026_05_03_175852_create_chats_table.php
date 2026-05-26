@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('chats', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->string('avatar')->nullable();
             $table->boolean('is_group')->default(false);
-            $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
         });
     }

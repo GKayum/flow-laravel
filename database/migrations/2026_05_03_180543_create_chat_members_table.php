@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('chat_members', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class)->constrained();
-            $table->foreignIdFor(Chat::class)->constrained();
+            $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
+            $table->foreignIdFor(Chat::class)->constrained()->onDelete('cascade');
             $table->enum('role', ['owner', 'member', 'admin'])->default('member');
             $table->timestamps();
         });

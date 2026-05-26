@@ -8,9 +8,11 @@ import MessageField from '../MessageField/MessageField'
 import { api, handlerApiError } from '../../services/api'
 import { useChat } from '../../contexts/ChatContext'
 import { usePlural } from '../../hooks/usePlural'
+import { useChatDisplay } from '../../hooks/useChatDisplay'
 
 export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose }) {
     const { selectedChat, selectedChatId, onCloseChat, updateChat } = useChat()
+    const chatDisplay = useChatDisplay(selectedChat)
     const [messages, setMessages] = useState([])
     const [messagesLoading, setMessagesLoading] = useState(true)
 
@@ -96,6 +98,11 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         }
     }, [selectedChat, updateChat])
 
+    const handleClick = () => {
+        onChatTabChange(selectedChat?.is_group ? 'chat' : 'user')
+        onOpenChatSidebar()
+    }
+
     if (!selectedChat) {
         return (
             <div className={styles.not_msgs_block}>
@@ -110,14 +117,11 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
             <header className={styles.chat__header}>
                 <div 
                     className={styles.info} 
-                    onClick={() => {
-                        onChatTabChange('chat')
-                        onOpenChatSidebar()
-                    }}
+                    onClick={handleClick}
                 >
-                    <Avatar user={selectedChat} size="2.625rem" fontSize="1.3125rem" />
+                    <Avatar user={{ name: chatDisplay?.displayName, avatar: chatDisplay?.displayAvatar }} size="2.625rem" fontSize="1.3125rem" />
                     <div className={styles.content}>
-                        <span className={styles.name}>{selectedChat.name}</span>
+                        <span className={styles.name}>{chatDisplay.displayName}</span>
                         <span className={styles.messages}>{!messagesLoading ? `${messages.length} ${messageWord}` : 'загрузка...'}</span>
                     </div>
                 </div>

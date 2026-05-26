@@ -1,5 +1,5 @@
 import Avatar from "../../../components/UI/Avatar/Avatar"
-import styles from "./UsersTab.module.scss"
+import styles from "./SearchTab.module.scss"
 import TabHeader from "../../../components/TabHeader/TabHeader"
 import SearchField from "../../../components/UI/SearchField/SearchField"
 import { useEffect, useMemo, useState } from "react"
@@ -7,8 +7,8 @@ import { api } from "../../../services/api"
 import { useDebounce } from "../../../hooks/useDebounce"
 import { useChat } from "../../../contexts/ChatContext"
 
-export default function UsersTab({ onClose }) {
-    const { onSelectChat } = useChat()
+export default function SearchTab({ onClose }) {
+    const { openPersonalChat } = useChat()
     const [value, setValue] = useState('')
     const [users, setUsers] = useState([])
     const debouncedValue = useDebounce(value)
@@ -34,11 +34,11 @@ export default function UsersTab({ onClose }) {
 
     }, [debouncedValue])
 
-    // const handleClick = ({ user, isUser }) => {
-    //     onSelectChat({ user, isUser })
-    //     onClose()
-    //     setValue('')
-    // }
+    const handleClick = (user) => {
+        openPersonalChat(user.id)
+        setValue('')
+        onClose()
+    }
     
     return (
         <>
@@ -47,7 +47,7 @@ export default function UsersTab({ onClose }) {
         </TabHeader>
         <div className={styles.main}>
             {users.map((user) => (
-                <button className={styles.item} key={user.id}>
+                <button className={styles.item} key={user.id} onClick={() => handleClick(user)}>
                     <Avatar user={user} size="2.625rem" fontSize="1.3rem" />
                     <div className={styles.item__body}>
                         <span className={styles.content}>{user.name}</span>

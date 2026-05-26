@@ -1,9 +1,11 @@
 import { useChat } from '../../contexts/ChatContext'
+import { useChatDisplay } from '../../hooks/useChatDisplay'
 import Avatar from '../UI/Avatar/Avatar'
 import styles from './ChatItem.module.scss'
 
 export default function ChatItem({ chat }) {
     const { onSelectChat, selectedChat } = useChat()
+    const chatDisplay = useChatDisplay(chat)
     
     const isSelected = selectedChat?.id === chat.id
 
@@ -12,10 +14,10 @@ export default function ChatItem({ chat }) {
             className={`${styles.button} ${isSelected ? styles.selected : ''}`}
             onClick={() => onSelectChat(chat)}
         >
-            <Avatar user={chat} size="3.2rem" />
+            <Avatar user={{ name: chatDisplay.displayName, avatar: chatDisplay.displayAvatar }} size="3.2rem" />
             <div className={styles.button__body}>
                 <div className={styles.button__header}>
-                    <span className={styles.name}>{chat.name}</span>
+                    <span className={styles.name}>{chatDisplay.displayName}</span>
                     <span className={styles.time}>{chat.latestMessage?.time ?? '--:--'}</span>
                 </div>
                 <div className={styles.messageBlock}>

@@ -48,7 +48,7 @@ export default function SideHeader({ onOpenSidebar, onTabChange }) {
                                 onClick={() => {
                                     onOpenSidebar()
                                     setDropdownOpen(false)
-                                    onTabChange('users')
+                                    onTabChange('searchUsers')
                                 }}
                             >
                                 <div className={styles.imgContainer}>

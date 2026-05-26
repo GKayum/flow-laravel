@@ -34,6 +34,23 @@ export function ChatProvider({ children }) {
         )
     }, [])
 
+    const openPersonalChat = useCallback(async (userId) => {
+        try {
+            const response = await api.post('/api/chat/personal', { user_id: userId })
+            const personalChat = response.data
+
+            setChats(prev =>
+                prev.some(chat => chat.id === personalChat.id)
+                    ? prev
+                    : [personalChat, ...prev]
+            )
+
+            setSelectedChatId(personalChat.id)
+        } catch (error) {
+            console.error('Ошибка при открытии личного чата:', error)
+        }
+    }, [])
+
     const onSelectChat = useCallback((chat) => {
         setSelectedChatId(chat.id)
     }, [])
@@ -49,6 +66,7 @@ export function ChatProvider({ children }) {
             setChats,
             updateChat,
             onSelectChat,
+            openPersonalChat,
             onCloseChat: closeChat,
         }}>
             {children}
