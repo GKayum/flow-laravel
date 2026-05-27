@@ -1,15 +1,40 @@
 import { CirclePlus } from 'lucide-react'
 import ChatItem from '../ChatItem/ChatItem'
 import styles from './ChatList.module.scss'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { UserRound } from 'lucide-react'
 import { UsersRound } from 'lucide-react'
 import { Loader } from '../UI/Loader/Loader'
 import { useChat } from '../../contexts/ChatContext'
+import { api, handlerApiError } from '../../services/api'
 
 export default function ChatList({ onOpenSidebar, onTabChange }) {
-    const { chats, chatsLoading } = useChat()
+    const { setChats, chats, chatsLoading } = useChat()
     const [dropdownOpen, setDropdownOpen] = useState(false)
+
+    const handleDeleteChat = useCallback(async (chatId) => {
+        try {
+            await api.delete(`api/chat/${chatId}/delete`)
+
+            setChats(prev =>
+                prev.filter(chat => chat.id !== chatId)
+            )
+        } catch (error) {
+            handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+        }
+    }, [])
+
+    const handleExitChat = useCallback(async (chatId) => {
+        try {
+            await api.post(`api/chat/${chatId}/exit`)
+
+            setChats(prev =>
+                prev.filter(chat => chat.id !== chatId)
+            )
+        } catch (error) {
+            handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+        }
+    }, [])
 
     return (
         <main className={styles.main}>
@@ -71,6 +96,8 @@ export default function ChatList({ onOpenSidebar, onTabChange }) {
                         <ChatItem
                             key={chat.id}
                             chat={chat}
+                            onDelete={handleDeleteChat}
+                            onExit={handleExitChat}
                         />
                         // <ChatItem 
                         //     type={'button'}

@@ -25,6 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/list', [ChatController::class, 'list']);
         Route::post('/create', [ChatController::class, 'create']);
         Route::post('/personal', [ChatController::class, 'personal']);
+        Route::delete('/{chat}/delete', [ChatController::class, 'delete']);
+        Route::post('/{chat}/exit', [ChatController::class, 'exit']);
         Route::post('/{chat}/update', [ChatController::class, 'update']);
         Route::post('/{chat}/members', [ChatController::class, 'addMembers']);
 

@@ -23,6 +23,9 @@
     .body {
 
         &__block {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
             padding: 10px 0;
             border-bottom: 1px solid rgba($color: #191816, $alpha: .2);
 
@@ -60,6 +63,67 @@
                     height: 3.375rem /* 54px */;
                     background-color: var(--color-purple);
                     color: #fff;
+                }
+            }
+
+            .button {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+
+                width: 100%;
+                padding: 5px 15px;
+                border-radius: 10px;
+                transition: background-color .1s ease-in-out;
+
+                &:hover {
+                    background-color: var(--color-grey-3);
+                }
+
+                &.buttonEdit {
+                    color: var(--color-purple);
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: var(--color-blue-1);
+                    }
+
+                    .icon {
+                        color: var(--color-purple);
+                    }
+                }
+
+                &.buttonDanger {
+                    color: var(--color-red-1);
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: var(--color-red-2);
+                    }
+
+                    .icon {
+                        color: var(--color-red-1);
+                    }
+                }
+
+                .icon {
+                    color: var(--color-grey-1);
+                }
+
+                .buttonBody {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: start;
+
+                    line-height: 1.5;
+
+                    // .content {
+                    // }
+
+                    .label {
+                        font-size: 14px;
+                        color: var(--color-grey-1);
+                    }
                 }
             }
         }

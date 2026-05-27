@@ -49,9 +49,14 @@ class ChatPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Chat $chat): bool
+    public function delete(User $user, Chat $chat): Response
     {
-        return false;
+        return $chat->users()
+            ->where('user_id', $user->id)
+            ->wherePivot('role', 'owner')
+            ->exists()
+                ? Response::allow()
+                : Response::deny('Вы не можете удалить чат');
     }
 
     /**

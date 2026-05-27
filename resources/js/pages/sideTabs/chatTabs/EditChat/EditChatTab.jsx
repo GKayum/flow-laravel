@@ -9,9 +9,10 @@ import TabHeader from "../../../../components/TabHeader/TabHeader"
 import { useChat } from "../../../../contexts/ChatContext"
 import GroupAvatarCropper from "../../../../components/UI/GroupAvatarCropper/GroupAvatarCropper"
 import { CircleCheck } from "lucide-react"
+import { Trash } from "lucide-react"
 
 export default function EditChatTab({ onClose }) {
-    const { selectedChat, updateChat } = useChat()
+    const { selectedChat, updateChat, setChats } = useChat()
     const [formData, setFormData] = useState({
         avatar: '',
         name: '',
@@ -80,6 +81,18 @@ export default function EditChatTab({ onClose }) {
         }
     }
 
+    const handleDeleteChat = async () => {
+        try {
+            await api.delete(`api/chat/${selectedChat.id}/delete`)
+
+            setChats(prev =>
+                prev.filter(chat => chat.id !== selectedChat.id)
+            )
+        } catch (error) {
+            handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+        }
+    }
+
     if (!selectedChat) return
 
     return (
@@ -112,6 +125,13 @@ export default function EditChatTab({ onClose }) {
                     </button>
                 </form>
                 <section className={styles.body__block}>
+                    <button className={`${styles.button} ${styles.buttonDanger}`} onClick={handleDeleteChat}>
+                        <Trash className={styles.icon} />
+                        <div className={styles.buttonBody}>
+                            <span className={styles.content}>Удалить чат</span>
+                            <label className={styles.label}>Действие</label>
+                        </div>
+                    </button>
                     {message && <Alert icon={Check} content={message} label={'Оповещение'} type={'success'} />}
                     {error && <Alert icon={X} content={error} label={'Оповещение'} type={'danger'} />}
                 </section>

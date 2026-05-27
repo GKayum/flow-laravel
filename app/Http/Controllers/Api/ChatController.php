@@ -7,7 +7,6 @@ use App\Http\Resources\ChatResource;
 use App\Http\Resources\UserResource;
 use App\Models\Chat;
 use App\Models\ChatMember;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -52,9 +51,9 @@ class ChatController extends Controller
                 return $existingChat;
             }
 
-            $newChat = Chat::create(['is_group', false]);
+            $newChat = Chat::create(['is_group' => false]);
 
-            $newChat->users()->syncWithoutDetaching($userIds);
+            $newChat->users()->sync(array_fill_keys($userIds, ['role' => 'owner']));
 
             return $newChat->load('users');
         });
@@ -141,6 +140,26 @@ class ChatController extends Controller
         return response()->json([
             'message' => 'Данные чата изменены',
             'chat' => new ChatResource($chat),
+        ]);
+    }
+
+    public function delete(Chat $chat) {
+        Gate::authorize('delete', [$chat]);
+
+        $chat->delete();
+
+        return response()->json([
+            'message' => 'Чат удален',
+        ]);
+    }
+
+    public function exit(Chat $chat) {
+        $userId = Auth::user()->id;
+
+        $chat->users()->detach($userId);
+
+        return response()->json([
+            'message' => 'Вы вышли из чата',
         ]);
     }
 
