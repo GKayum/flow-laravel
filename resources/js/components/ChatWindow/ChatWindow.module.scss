@@ -95,14 +95,12 @@
     }
 
     &__footer {
-        position: relative;
+        align-self: center;
         max-width: 44rem /* 44rem = 704px */;
         width: 100%;
         background-color: #fff;
         border-top-left-radius: 12px;
         border-top-right-radius: 12px;
-
-        margin: 0 auto;
         padding: 12px;
     }
 }

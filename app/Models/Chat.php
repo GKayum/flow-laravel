@@ -10,11 +10,10 @@ class Chat extends Model
         'name',
         'avatar',
         'is_group',
-        'created_by',
     ];
 
     public function latestMessage() {
-        return $this->hasOne(Message::class)->latest();
+        return $this->hasOne(Message::class)->latestOfMany();
     }
 
     public function messages() {
