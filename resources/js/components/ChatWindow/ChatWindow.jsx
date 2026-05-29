@@ -19,7 +19,7 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
     const messageWord = usePlural(messages.length, ['сообщение', 'сообщения', 'сообщений'])
 
     useEffect(() => {
-        if (!selectedChat) return
+        if (!selectedChat?.id) return
         
         (async () => {
             setMessagesLoading(true)
@@ -34,7 +34,7 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
                 })
                 .finally(() => setMessagesLoading(false))
         })()
-    }, [selectedChatId])
+    }, [selectedChatId, selectedChat?.id])
 
     const handleSendMessage = async (content) => {
         try {
@@ -53,6 +53,8 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
     }
 
     const handleDeleteMessage = useCallback(async (messageId) => {
+        if (!selectedChat) return
+
         try {
             await api.delete(`/api/message/${messageId}/delete`)
 
@@ -77,6 +79,8 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
     }, [selectedChat, updateChat])
 
     const handleEditMessage = useCallback(async (messageId, newContent) => {
+        if (!selectedChat) return
+
         try {
             const response = await api.put(`/api/message/${messageId}/update`, { content: newContent })
 

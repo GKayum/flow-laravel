@@ -2,11 +2,11 @@ import styles from "./AddMember.module.scss"
 import { useEffect, useMemo, useState } from "react"
 import { api, handlerApiError } from "../../../../services/api"
 import TabHeader from "../../../../components/TabHeader/TabHeader"
-import { useDebounce } from "../../../../hooks/useDebounce"
 import SearchField from "../../../../components/UI/SearchField/SearchField"
 import Avatar from "../../../../components/UI/Avatar/Avatar"
 import { useChat } from "../../../../contexts/ChatContext"
 import { CircleCheck } from "lucide-react"
+import { debounce } from "../../../../utils/debounce"
 
 export default function AddMember({ onChatTabChange, onClose }) {
     const { selectedChat, updateChat } = useChat()
@@ -17,28 +17,38 @@ export default function AddMember({ onChatTabChange, onClose }) {
     const [validationErrors, setValidationErrors] = useState({})
     const [submitting, setSubmitting] = useState(false)
     const [value, setValue] = useState('')
-    const debouncedValue = useDebounce(value)
 
-    const searchUrl = useMemo(() => {
-        const params = new URLSearchParams()
+    const debouncedSearch = useMemo(
+        () =>
+            debounce((searchQuery) => {
+                if (!searchQuery.trim()) return
 
-        params.set('q', debouncedValue)
+                const params = new URLSearchParams()
+                params.set('q', searchQuery)
 
-        return `/api/users/search?${params.toString()}`
-    }, [debouncedValue])
+                api.get(`/api/users/search?${params.toString()}`)
+                    .then(res => setUsers(res.data))
+                    .catch(error => console.error(error))
+            }),
+        []
+    )
 
     useEffect(() => {
-        if (!value.trim()) setUsers([])
-    }, [value])
+        return () => {
+            debouncedSearch.cancel?.()
+        }
+    }, [debouncedSearch])
 
-    useEffect(() => {
-        if (!debouncedValue.trim()) return
+    const handleSearchChange = (newValue) => {
+        setValue(newValue)
 
-        api.get(searchUrl)
-            .then(res => setUsers(res.data))
-            .catch(error => console.error(error))
-
-    }, [debouncedValue])
+        if (!newValue.trim()) {
+            setUsers([])
+            debouncedSearch.cancel()
+        } else {
+            debouncedSearch(newValue)
+        }
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -87,7 +97,7 @@ export default function AddMember({ onChatTabChange, onClose }) {
         <div className={styles.main}>
             <div className={styles.body}>
                 <section className={styles.body__block}>
-                    <SearchField value={value} setValue={setValue} />
+                    <SearchField value={value} setValue={handleSearchChange} />
                     <div className={styles.membersContainer}>
                         {members?.map((member) => (
                             <button className={styles.memberButton} key={member.id} onClick={() => togglePick(member)}>

@@ -24,18 +24,25 @@ export default function EditProfileTab({ onClose }) {
         password: '',
         passwordConfirmation: '',
     })
-    const [message, setMessage] = useState('')
-    const [error, setError] = useState('')
-    const [validationErrors, setValidationErrors] = useState({})
-    const [submitting, setSubmitting] = useState(false)
-    const [avatarLoading, setAvatarLoading] = useState(false)
+    const [formStatus, setFormStatus] = useState({
+        message: '',
+        error: '',
+        validationErrors: {},
+        submitting: false,
+        avatarLoading: false,
+    })
+    // const [message, setMessage] = useState('')
+    // const [error, setError] = useState('')
+    // const [validationErrors, setValidationErrors] = useState({})
+    // const [submitting, setSubmitting] = useState(false)
+    // const [avatarLoading, setAvatarLoading] = useState(false)
 
     const handleChangeAvatar = async (avatar) => {
         if (!avatar) return
-        setError('')
-        setValidationErrors({})
+        setFormStatus(prev => ({ ...prev, error: '' }))
+        setFormStatus(prev => ({ ...prev, validationErrors: {} }))
 
-        setAvatarLoading(true)
+        setFormStatus(prev => ({ ...prev, avatarLoading: true }))
 
         try {
             const data = new FormData()
@@ -49,17 +56,17 @@ export default function EditProfileTab({ onClose }) {
         } catch (error) {
             handlerApiError(error, { setValidationErrors, setError })
         } finally {
-            setAvatarLoading(false)
+            setFormStatus(prev => ({ ...prev, avatarLoading: false }))
         }
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        setError('')
-        setMessage('')
-        setValidationErrors({})
+        setFormStatus(prev => ({ ...prev, error: '' }))
+        setFormStatus(prev => ({ ...prev, message: '' }))
+        setFormStatus(prev => ({ ...prev, validationErrors: {} }))
 
-        setSubmitting(true)
+        setFormStatus(prev => ({ ...prev, submitting: true }))
 
         try {
             const data = new FormData()
@@ -75,7 +82,7 @@ export default function EditProfileTab({ onClose }) {
             await api.get('/sanctum/csrf-cookie')
             const response = await api.post('/api/user/update', data)
             setUser(response.data.user)
-            setMessage(response.data.message)            
+            setFormStatus(prev => ({ ...prev, message: response.data.message })) 
             setTimeout(() => {
                 setMessage('')            
             }, 2000);
@@ -83,7 +90,7 @@ export default function EditProfileTab({ onClose }) {
             handlerApiError(error, { setValidationErrors, setError })
             console.log(error);
         } finally {
-            setSubmitting(false)
+            setFormStatus(prev => ({ ...prev, submitting: false }))
         }
     }
 
@@ -94,7 +101,7 @@ export default function EditProfileTab({ onClose }) {
             <div className={styles.avatarContainer}>
                 <UserAvatarCropper 
                     onChangeAvatar={blob => handleChangeAvatar(blob)} 
-                    avatarLoading={avatarLoading}
+                    avatarLoading={formStatus.avatarLoading}
                 />
                 <span className={styles.avatarContainer__name}>{user.name}</span>
             </div>
@@ -108,7 +115,7 @@ export default function EditProfileTab({ onClose }) {
                             type='text'
                             onChange={e => setFormData({...formData, name: e.target.value})}
                             value={formData.name}
-                            style={validationErrors.name ? { borderColor: '#FF0001' } : {}}
+                            style={formStatus.validationErrors.name ? { borderColor: '#FF0001' } : {}}
                         />
                     </div>
                     <div className={styles.item}>
@@ -119,7 +126,7 @@ export default function EditProfileTab({ onClose }) {
                             type='date'
                             onChange={e => setFormData({...formData, dateOfBirth: e.target.value})}
                             value={formData.dateOfBirth}
-                            style={validationErrors.dateOfBirth ? { borderColor: '#FF0001' } : {}}
+                            style={formStatus.validationErrors.dateOfBirth ? { borderColor: '#FF0001' } : {}}
                         />
                     </div>
                     <div className={styles.item}>
@@ -130,7 +137,7 @@ export default function EditProfileTab({ onClose }) {
                             type='email'
                             onChange={e => setFormData({...formData, email: e.target.value})}
                             value={formData.email}
-                            style={validationErrors.email ? { borderColor: '#FF0001' } : {}}
+                            style={formStatus.validationErrors.email ? { borderColor: '#FF0001' } : {}}
                         />
                     </div>
                     <div className={styles.item}>
@@ -141,7 +148,7 @@ export default function EditProfileTab({ onClose }) {
                             type='password'
                             onChange={e => setFormData({...formData, password: e.target.value})}
                             value={formData.password}
-                            style={validationErrors.password ? { borderColor: '#FF0001' } : {}}
+                            style={formStatus.validationErrors.password ? { borderColor: '#FF0001' } : {}}
                         />
                     </div>
                     <div className={styles.item}>
@@ -152,7 +159,7 @@ export default function EditProfileTab({ onClose }) {
                             type='password'
                             onChange={e => setFormData({...formData, passwordConfirmation: e.target.value})}
                             value={formData.passwordConfirmation}
-                            style={validationErrors.passwordConfirmation ? { borderColor: '#FF0001' } : {}}
+                            style={formStatus.validationErrors.passwordConfirmation ? { borderColor: '#FF0001' } : {}}
                         />
                     </div>
                     <button 
@@ -161,14 +168,14 @@ export default function EditProfileTab({ onClose }) {
                     >
                         <Pen className={styles.buttonIcon} />
                         <div className={styles.item__body}>
-                            <span className={styles.content}>{submitting ? 'Сохранение...' : 'Сохранить изменения'}</span>
+                            <span className={styles.content}>{formStatus.submitting ? 'Сохранение...' : 'Сохранить изменения'}</span>
                             <label className={styles.label}>Действие</label>
                         </div>
                     </button>
                 </form>
                 <section className={styles.body__block}>
-                    {message && <Alert icon={Check} content={message} label={'Оповещение'} type={'success'} />}
-                    {error && <Alert icon={X} content={error} label={'Оповещение'} type={'danger'} />}
+                    {formStatus.message && <Alert icon={Check} content={formStatus.message} label={'Оповещение'} type={'success'} />}
+                    {formStatus.error && <Alert icon={X} content={formStatus.error} label={'Оповещение'} type={'danger'} />}
                 </section>
             </div>
         </div>

@@ -13,12 +13,13 @@ import { useCopyToClipboard } from "../../hooks/useCopyToClipboard"
 export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }) {
     const [contextMenu, setContextMenu] = useState(null)
     const [isEditing, setIsEditing] = useState(false)
-    const [editContent, setEditContent] = useState(message.content)
     const editDivRef = useRef(null)
     const { copy } = useCopyToClipboard()
 
     useEffect(() => {
         if (isEditing && editDivRef.current) {
+            editDivRef.current.textContent = message.content
+
             requestAnimationFrame(() => {
                 editDivRef.current.focus({ preventScroll: true })
                 const range = document.createRange()
@@ -29,17 +30,11 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }
                 sel.addRange(range)
             })
         }
-    }, [isEditing])
-
-    useEffect(() => {
-        if (isEditing && editDivRef.current) {
-            editDivRef.current.textContent = message.content
-        }
     }, [isEditing, message.content])
 
     const handleContextMenu = (e) => {
         e.preventDefault()
-
+        
         if (isCurrentUser) {
             setContextMenu({ x: e.clientX, y: e.clientY })
         }
@@ -47,12 +42,11 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }
 
     const closeContextMenu = useCallback(() => setContextMenu(null), [])
 
-    const handleDelete = () => onDelete(message.id)
+    const handleDelete = useCallback(() => onDelete(message.id), [onDelete, message.id])
 
-    const startEdit = () => {
+    const startEdit = useCallback(() => {
         setIsEditing(true)
-        setEditContent(message.content)
-    }
+    }, [])
 
     const handleSaveEdit = () => {
         const newContent = editDivRef.current?.textContent?.trim() || ''
@@ -64,7 +58,6 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }
 
     const handleCancelEdit = () => {
         setIsEditing(false)
-        setEditContent(message.content)
     }
 
     const handleKeyDown = (e) => {
@@ -77,16 +70,12 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }
         }
     }
 
-    const handleInput = (e) => {
-        setEditContent(e.currentTarget.textContent)
-    }
-
     const menuItems = useMemo(() => [
         { icon: Undo2, label: 'Ответить', action: () => {} },
         { icon: Copy, label: 'Копировать', action: () => copy(message.content) },
         { icon: Pencil, label: 'Изменить', action: startEdit },
         { type: 'danger', icon: Trash, label: 'Удалить', action: handleDelete },
-    ], [message.id, message.content, onDelete])
+    ], [message.content, handleDelete, copy, startEdit])
 
     const itemClass = `${styles.messageItem} ${isCurrentUser ? styles.currentUser : ''}`
 
@@ -113,7 +102,6 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }
                                 className={styles.editInput}
                                 contentEditable
                                 suppressContentEditableWarning
-                                onInput={handleInput}
                                 onKeyDown={handleKeyDown}
                             />
                             <div className={styles.actions}>

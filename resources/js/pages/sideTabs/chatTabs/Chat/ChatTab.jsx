@@ -12,11 +12,10 @@ import { UserRoundPlus } from "lucide-react"
 export default function ChatTab({ onChatTabChange, onClose }) {
     const { selectedChat, updateChat } = useChat()
 
-    if (!selectedChat) return null
-
-    const memberWord = usePlural(selectedChat.members.length, ['участник', 'участника', 'участников'])
+    const memberWord = usePlural(selectedChat?.members.length, ['участник', 'участника', 'участников'])
 
     const handleDeleteUser = useCallback(async (memberId) => {
+        if (!selectedChat) return
         try {
             await api.delete(`/api/chat/${selectedChat.id}/member/${memberId}`)
 
@@ -31,6 +30,7 @@ export default function ChatTab({ onChatTabChange, onClose }) {
     }, [selectedChat, updateChat])
 
     const handleChangeRole = useCallback(async (memberId, newRole = 'admin') => {
+        if (!selectedChat) return
         try {
             const response = await api.put(`/api/chat/${selectedChat.id}/member/${memberId}/role`, {
                 role: newRole,
@@ -48,6 +48,8 @@ export default function ChatTab({ onChatTabChange, onClose }) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }
     }, [selectedChat, updateChat])
+
+    if (!selectedChat) return null
 
     return (
         <>

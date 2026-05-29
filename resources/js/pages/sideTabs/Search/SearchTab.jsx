@@ -4,35 +4,45 @@ import TabHeader from "../../../components/TabHeader/TabHeader"
 import SearchField from "../../../components/UI/SearchField/SearchField"
 import { useEffect, useMemo, useState } from "react"
 import { api } from "../../../services/api"
-import { useDebounce } from "../../../hooks/useDebounce"
 import { useChat } from "../../../contexts/ChatContext"
+import { debounce } from "../../../utils/debounce"
 
 export default function SearchTab({ onClose }) {
     const { openPersonalChat } = useChat()
     const [value, setValue] = useState('')
     const [users, setUsers] = useState([])
-    const debouncedValue = useDebounce(value)
 
-    const searchUrl = useMemo(() => {
-        const params = new URLSearchParams()
+    const debouncedSearch = useMemo(
+        () => 
+            debounce((searchQuery) => {
+                if (!searchQuery.trim()) return
 
-        params.set('q', debouncedValue)
+                const params = new URLSearchParams()
+                params.set('q', searchQuery)
 
-        return `/api/users/search?${params.toString()}`
-    }, [debouncedValue])
+                api.get(`/api/users/search?${params.toString()}`)
+                    .then(res => setUsers(res.data))
+                    .catch(error => console.error(error))
+            }),
+        []
+    )
 
     useEffect(() => {
-        if (!value.trim()) setUsers([])
-    }, [value])
+        return () => {
+            debouncedSearch.cancel?.()
+        }
+    }, [debouncedSearch])
 
-    useEffect(() => {
-        if (!debouncedValue.trim()) return
+    const handleSearchChange = (newValue) => {
+        setValue(newValue)
 
-        api.get(searchUrl)
-            .then(res => setUsers(res.data))
-            .catch(error => console.error(error))
-
-    }, [debouncedValue])
+        if (!newValue.trim()) {
+            setUsers([])
+            debouncedSearch.cancel()
+        } else {
+            debouncedSearch(newValue)
+        }
+    }
 
     const handleClick = (user) => {
         openPersonalChat(user.id)
@@ -43,7 +53,7 @@ export default function SearchTab({ onClose }) {
     return (
         <>
         <TabHeader onClose={onClose}>
-            <SearchField value={value} setValue={setValue} />
+            <SearchField value={value} setValue={handleSearchChange} />
         </TabHeader>
         <div className={styles.main}>
             {users.map((user) => (

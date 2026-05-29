@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom"
 import { api } from "../services/api"
 
@@ -22,35 +22,37 @@ export function AuthProvider({ children }) {
             .finally(() => setUserLoading(false))
     }, [])
 
-    const login = async (email, password) => {
+    const login = useCallback(async (email, password) => {
         await api.get('/sanctum/csrf-cookie')
         const response = await api.post('/api/login', { email, password })
         setUser(response.data.user)
         navigate('/')
-    }
+    }, [navigate])
 
-    const register = async (email, name, password, passwordConfirmation) => {
+    const register = useCallback(async (email, name, password, passwordConfirmation) => {
         await api.get('/sanctum/csrf-cookie')
         const response = await api.post('/api/register', { email, name, password, password_confirmation: passwordConfirmation })
         setUser(response.data.user)
         navigate('/')
-    }
+    }, [navigate])
 
-    const logout = async () => {
+    const logout = useCallback(async () => {
         await api.post('/api/logout')
         setUser(null)
         navigate('/')
-    }
+    }, [navigate])
+
+    const contextValue = useMemo(() => ({
+        user,
+        login,
+        register,
+        logout,
+        userLoading,
+        setUser
+    }), [user, userLoading, login, register, logout])
 
     return (
-        <AuthContext.Provider value={{
-            user,
-            login,
-            register,
-            logout,
-            userLoading,
-            setUser
-        }}>
+        <AuthContext.Provider value={contextValue}>
             {children}
         </AuthContext.Provider>
     )

@@ -27,7 +27,7 @@ export default function ChatItem({ chat, onDelete, onExit }) {
         chat.is_group
             ? { type: 'danger', icon: Trash, label: 'Выйти из чата', action: handleExit }
             : { type: 'danger', icon: Trash, label: 'Удалить чат', action: handleDelete }
-    ], [handleDelete, handleExit])
+    ], [handleDelete, handleExit, onSelectChat, chat])
     
     const isSelected = selectedChat?.id === chat.id
 
@@ -42,6 +42,7 @@ export default function ChatItem({ chat, onDelete, onExit }) {
             />
         )}
         <button
+            type="button"
             className={`${styles.button} ${isSelected ? styles.selected : ''}`}
             onClick={() => onSelectChat(chat)}
             onContextMenu={handleContextMenu}

@@ -1,5 +1,5 @@
 import Cropper from "react-easy-crop"
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { Loader } from "../Loader/Loader"
 import { Camera, Check, X } from "lucide-react"
 import styles from "./GroupAvatarCropper.module.scss"
@@ -13,11 +13,6 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
     const [crop, setCrop] = useState({x: 0, y: 0})
     const [zoom, setZoom] = useState(1)
     const [croppedArea, setCroppedArea] = useState(null)
-
-    useEffect(() => {
-        setPreviewUrl(null)
-        // setLoading(false)
-    }, [avatar])
 
     const onInputChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -118,6 +113,7 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
                     className={styles.input}
                 />
                 <button
+                    type="button"
                     className={styles.button}
                     onClick={() => inputRef.current.click()}
                 >

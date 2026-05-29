@@ -40,8 +40,8 @@ export default memo(function ContextMenu({ x, y, onClose, items  }) {
         document.addEventListener('keydown', handleEsc)
 
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside) // Проверить, если убрать
-            document.removeEventListener('keydown', handleEsc) // Также проверить
+            document.removeEventListener('mousedown', handleClickOutside)
+            document.removeEventListener('keydown', handleEsc)
         }
     }, [onClose])
     
@@ -49,11 +49,11 @@ export default memo(function ContextMenu({ x, y, onClose, items  }) {
         <div
             ref={menuRef}
             className={styles.contextMenu}
-            style={{ top: coords.top, left: coords.left, position: 'fixed', zIndex: 1000 }}
+            style={{ top: coords.top, left: coords.left, position: 'fixed', zIndex: 10 }}
         >
-            {items.map((item, index) => (
+            {items.map((item) => (
                 <button
-                    key={index}
+                    key={item.label}
                     className={`${styles.menuItem} ${styles[item.type]}`}
                     onClick={() => {
                         item.action()

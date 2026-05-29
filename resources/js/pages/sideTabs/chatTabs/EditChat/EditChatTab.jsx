@@ -100,9 +100,10 @@ export default function EditChatTab({ onClose }) {
         <TabHeader text={'Редактирование чата'} onClose={onClose} />
         <div className={styles.main}>
             <div className={styles.avatarContainer}>
-                <GroupAvatarCropper 
-                    onChangeAvatar={blob => handleChangeAvatar(blob)}
+                <GroupAvatarCropper
+                    key={selectedChat.id}
                     avatar={selectedChat.avatar}
+                    onChangeAvatar={blob => handleChangeAvatar(blob)}
                 />
                 <span className={styles.avatarContainer__name}>{selectedChat.name}</span>
             </div>

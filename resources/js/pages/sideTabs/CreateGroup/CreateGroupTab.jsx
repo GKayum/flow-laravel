@@ -3,19 +3,16 @@ import { Field } from "../../../components/UI/Field/Field"
 import { useEffect, useMemo, useState } from "react"
 import { api, handlerApiError } from "../../../services/api"
 import TabHeader from "../../../components/TabHeader/TabHeader"
-import { useDebounce } from "../../../hooks/useDebounce"
 import GroupAvatarCropper from "../../../components/UI/GroupAvatarCropper/GroupAvatarCropper"
 import SearchField from "../../../components/UI/SearchField/SearchField"
 import Avatar from "../../../components/UI/Avatar/Avatar"
 import { CircleCheck } from "lucide-react"
 import { useChat } from "../../../contexts/ChatContext"
+import { debounce } from "../../../utils/debounce"
 
 export default function CreateGroupTab({ onClose }) {
     const { onSelectChat, setChats } = useChat()
-    const [formData, setFormData] = useState({
-        avatar: null,
-        name: '',
-    })
+    const [formData, setFormData] = useState({ avatar: null, name: '' })
     const [users, setUsers] = useState([])
     const [members, setMembers] = useState([])
     const selectedSet = useMemo(() => new Set(members), [members])
@@ -23,28 +20,38 @@ export default function CreateGroupTab({ onClose }) {
     const [validationErrors, setValidationErrors] = useState({})
     const [submitting, setSubmitting] = useState(false)
     const [value, setValue] = useState('')
-    const debouncedValue = useDebounce(value)
 
-    const searchUrl = useMemo(() => {
-        const params = new URLSearchParams()
+    const debouncedSearch = useMemo(
+        () =>
+            debounce((searchQuery) => {
+                if (!searchQuery.trim()) return
 
-        params.set('q', debouncedValue)
+                const params = new URLSearchParams()
+                params.set('q', searchQuery)
 
-        return `/api/users/search?${params.toString()}`
-    }, [debouncedValue])
+                api.get(`/api/users/search?${params.toString()}`)
+                    .then(res => setUsers(res.data))
+                    .catch(error => console.error(error))
+            }),
+        []
+    )
 
     useEffect(() => {
-        if (!value.trim()) setUsers([])
-    }, [value])
+        return () => {
+            debouncedSearch.cancel?.()
+        }   
+    }, [debouncedSearch])
 
-    useEffect(() => {
-        if (!debouncedValue.trim()) return
+    const handleSearchChange = (newValue) => {
+        setValue(newValue)
 
-        api.get(searchUrl)
-            .then(res => setUsers(res.data))
-            .catch(error => console.error(error))
-
-    }, [debouncedValue])
+        if (!newValue.trim()) {
+            setUsers([])
+            debouncedSearch.cancel()
+        } else {
+            debouncedSearch(newValue)
+        }
+    }
 
     const handleChangeAvatar = (avatar) => {
         if (!avatar) return
@@ -61,7 +68,6 @@ export default function CreateGroupTab({ onClose }) {
 
         try {
             const data = new FormData()
-
             data.append('name', formData.name);
             if (formData.avatar) {
                 data.append('avatar', formData.avatar, 'avatar.webp')
@@ -76,7 +82,6 @@ export default function CreateGroupTab({ onClose }) {
             const response = await api.post('/api/chat/create', data, {
                 headers: {'Content-Type' : 'multipart/form-data'}
             })
-            console.log(response)
             onClose()
             setUsers([])
             setValue('')
@@ -104,7 +109,7 @@ export default function CreateGroupTab({ onClose }) {
         <TabHeader text={'Создание группы'} onClose={onClose} />
         <div className={styles.main}>
             <div className={styles.avatarContainer}>
-                <GroupAvatarCropper onChangeAvatar={blob => handleChangeAvatar(blob)} />
+                <GroupAvatarCropper key="new-group-avatar" onChangeAvatar={blob => handleChangeAvatar(blob)} />
             </div>
             <div className={styles.body}>
                 <form className={styles.body__block} onSubmit={handleSubmit}>
@@ -121,7 +126,7 @@ export default function CreateGroupTab({ onClose }) {
                     </button>
                 </form>
                 <section className={styles.body__block}>
-                    <SearchField value={value} setValue={setValue} />
+                    <SearchField value={value} setValue={handleSearchChange} />
                 </section>
                 <section className={styles.body__block}>
                     <div className={styles.usersContainer}>

@@ -14,7 +14,7 @@ export default function UserAvatarCropper({ onChangeAvatar, avatarLoading = null
 
     const [crop, setCrop] = useState({x: 0, y: 0})
     const [zoom, setZoom] = useState(1)
-    const [croppedArea, setCroppedArea] = useState(null)
+    const croppedAreaRef = useRef(null)
 
     const onInputChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -27,11 +27,13 @@ export default function UserAvatarCropper({ onChangeAvatar, avatarLoading = null
     }
 
     const onCropComplete = (croppedAreaPercentage, croppedAreaPixels) => {
-        setCroppedArea(croppedAreaPixels)
+        croppedAreaRef.current = croppedAreaPixels
     }
 
-    const onCropDone = async (croppedArea) => {
-        if (!image) return
+    const onCropDone = async () => {
+        const croppedArea = croppedAreaRef.current
+
+        if (!image || !croppedArea) return
         setLoading(true)
         setImage(null)
 
@@ -90,7 +92,7 @@ export default function UserAvatarCropper({ onChangeAvatar, avatarLoading = null
                 <div className={styles.actions}>
                     <button
                         className={`${styles.actions__button} ${styles.confirm}`}
-                        onClick={() => onCropDone(croppedArea)}
+                        onClick={onCropDone}
                     >
                         <Check className={styles.icon} />
                     </button>
@@ -112,6 +114,7 @@ export default function UserAvatarCropper({ onChangeAvatar, avatarLoading = null
                     className={styles.input}
                 />
                 <button
+                    type="button"
                     className={styles.button}
                     onClick={() => inputRef.current.click()}
                 >

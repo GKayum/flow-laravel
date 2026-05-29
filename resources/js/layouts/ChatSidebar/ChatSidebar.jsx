@@ -4,22 +4,33 @@ import EditChatTab from "../../pages/sideTabs/chatTabs/EditChat/EditChatTab"
 import AddMember from "../../pages/sideTabs/chatTabs/AddMember/AddMember"
 import UserTab from "../../pages/sideTabs/chatTabs/User/UserTab"
 import { useChat } from "../../contexts/ChatContext"
-import { useEffect } from "react"
 
 export default function ChatSidebar({ open, onClose, chatActiveTab, onChatTabChange }) {
     const { selectedChat } = useChat()
 
-    useEffect(() => {
-        if (!open || !selectedChat) return
+    let activeTabToRender = chatActiveTab
 
+    if (open && selectedChat) {
         const isGroup = selectedChat.is_group
         const allowedTabs = isGroup ? ['chat', 'editChat', 'addMember'] : ['user']
         const defaultTab = isGroup ? 'chat' : 'user'
 
         if (!allowedTabs.includes(chatActiveTab)) {
-            onChatTabChange(defaultTab)
+            activeTabToRender = defaultTab
         }
-    }, [open, selectedChat, chatActiveTab, onChatTabChange])
+    }
+
+    // useEffect(() => {
+    //     if (!open || !selectedChat) return
+
+    //     const isGroup = selectedChat.is_group
+    //     const allowedTabs = isGroup ? ['chat', 'editChat', 'addMember'] : ['user']
+    //     const defaultTab = isGroup ? 'chat' : 'user'
+
+    //     if (!allowedTabs.includes(chatActiveTab)) {
+    //         onChatTabChange(defaultTab)
+    //     }
+    // }, [open, selectedChat, chatActiveTab, onChatTabChange])
 
 
     return (
@@ -30,7 +41,7 @@ export default function ChatSidebar({ open, onClose, chatActiveTab, onChatTabCha
                 // right: open ? '0' : '-100%'
             }}
         >
-            {(() => {switch (chatActiveTab) {
+            {(() => {switch (activeTabToRender) {
                 case 'chat':
                     return <ChatTab onChatTabChange={onChatTabChange} onClose={onClose} />
                 case 'editChat':

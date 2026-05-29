@@ -57,18 +57,29 @@ export function ChatProvider({ children }) {
 
     const closeChat = useCallback(() => setSelectedChatId(null), [])
 
+    const contextValue = useMemo(() => ({
+        chats,
+        chatsLoading,
+        selectedChat,
+        selectedChatId,
+        setChats,
+        updateChat,
+        onSelectChat,
+        openPersonalChat,
+        onCloseChat: closeChat,
+    }), [
+        chats, 
+        chatsLoading, 
+        selectedChat, 
+        selectedChatId,
+        updateChat,
+        onSelectChat,
+        openPersonalChat,
+        closeChat 
+    ])
+
     return (
-        <ChatContext.Provider value={{
-            chats,
-            chatsLoading,
-            selectedChat,
-            selectedChatId,
-            setChats,
-            updateChat,
-            onSelectChat,
-            openPersonalChat,
-            onCloseChat: closeChat,
-        }}>
+        <ChatContext.Provider value={contextValue}>
             {children}
         </ChatContext.Provider>
     )
