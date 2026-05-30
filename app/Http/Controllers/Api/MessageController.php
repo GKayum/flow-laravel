@@ -53,7 +53,10 @@ class MessageController extends Controller
             'content' => $validated['content'],
         ]);
 
-        broadcast(new MessageUpdated($message))->toOthers();
+        $latestMessage = $message->chat->messages()->latest()->first();
+        $isLatest = $latestMessage && $latestMessage->id === $message->id;
+
+        broadcast(new MessageUpdated($message, $isLatest))->toOthers();
 
         return response()->json(
             new MessageResource($message)
@@ -61,7 +64,15 @@ class MessageController extends Controller
     }
 
     public function delete(Message $message) {
-        broadcast(new MessageDeleted($message))->toOthers();
+        $chat = $message->chat;
+        $userIds = $chat->users()->pluck('users.id')->toArray();
+
+        $newLatest = $chat->messages()
+            ->where('id', '!=', $message->id)
+            ->latest()
+            ->first();
+
+        broadcast(new MessageDeleted($chat->id, $message->id, $userIds, $newLatest))->toOthers();
         
         $message->delete();
 

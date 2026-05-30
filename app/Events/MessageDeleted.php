@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Http\Resources\MessageResource;
 use App\Models\Message;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -19,9 +20,14 @@ class MessageDeleted implements ShouldBroadcast
      * Create a new event instance.
      */
     public function __construct(
-        public Message $message,
+        public int $chatId,
+        public int $messageId,
+        public array $userIds,
+        public ?Message $newLatestMessage,
     ) {
-        $this->message = $message;
+        if ($this->newLatestMessage) {
+            $this->newLatestMessage->load('user');
+        }
     }
 
     /**
@@ -31,13 +37,29 @@ class MessageDeleted implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('chat.' . $this->message->chat_id),
-        ];
+        return array_map(function ($id) {
+            return new PrivateChannel('user.' . $id);
+        }, $this->userIds);
+
+        // return [
+        //     new PrivateChannel('chat.' . $this->message->chat_id),
+        // ];
     }
 
     public function broadcastAs(): string
     {
         return 'message.deleted';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'chat_id' => $this->chatId,
+            'message_id' => $this->messageId,
+            // Если новое последнее сообщение существует, приводим его через ресурс, иначе null
+            'latest_message' => $this->newLatestMessage 
+                ? (new MessageResource($this->newLatestMessage))->resolve() 
+                : null,
+        ];
     }
 }

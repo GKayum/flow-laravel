@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../services/api";
+import { useAuth } from "./AuthContext"
 
 const ChatContext = createContext()
 
@@ -7,6 +8,11 @@ export function ChatProvider({ children }) {
     const [chats, setChats] = useState([])
     const [chatsLoading, setChatsLoading] = useState(true)
     const [selectedChatId, setSelectedChatId] = useState(null)
+
+    const { user } = useAuth()
+
+    const [currentMessages, setCurrentMessages] = useState([])
+    const [messagesLoading, setMessagesLoading] = useState(false)
 
     useEffect(() => {
         api.get('/api/chat/list')
@@ -33,6 +39,82 @@ export function ChatProvider({ children }) {
             )
         )
     }, [])
+
+    const loadMessages = useCallback(async (chatId) => {
+        setMessagesLoading(true)
+
+        try {
+            const response = await api.get(`/api/message/${chatId}/list`)
+            setCurrentMessages(response.data)
+        } catch (error) {
+            console.error('Messages load error:', error)
+        } finally {
+            setMessagesLoading(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        if (selectedChatId) {
+            loadMessages(selectedChatId)
+        } else {
+            setCurrentMessages([])
+        }
+    }, [selectedChatId, loadMessages])
+
+    useEffect(() => {
+        if (!user?.id || !window.Echo) return
+        
+        const channel = window.Echo.private(`user.${user.id}`)
+
+        channel.listen('.message.sent', (data) => {
+            const { chat_id, message } = data
+
+            updateChat({
+                id: chat_id,
+                latestMessage: message
+            })
+
+            if (chat_id === selectedChatId) {
+                setCurrentMessages(prev => [...prev, message])
+            }
+        })
+
+        channel.listen('.message.updated', (data) => {
+            const { chat_id, message, is_latest } = data
+
+            if (chat_id === selectedChatId) {
+                setCurrentMessages(prev =>
+                    prev.map(m => (m.id === message.id ? message : m))
+                );
+            }
+
+            if (is_latest) {
+                updateChat({
+                    id: chat_id,
+                    latestMessage: message
+                })
+            }
+        })
+
+        channel.listen('.message.deleted', (data) => {
+            const { chat_id, message_id, latest_message } = data;
+
+            updateChat({
+                id: chat_id,
+                latestMessage: latest_message
+            })
+
+            if (chat_id === selectedChatId) {
+                setCurrentMessages(prev =>
+                    prev.filter(m => m.id !== message_id)
+                );
+            }
+        })
+
+        return () => {
+            window.Echo.leave(`user.${user.id}`)
+        }
+    }, [user?.id, selectedChatId, updateChat])
 
     const openPersonalChat = useCallback(async (userId) => {
         try {
@@ -67,6 +149,10 @@ export function ChatProvider({ children }) {
         onSelectChat,
         openPersonalChat,
         onCloseChat: closeChat,
+        currentMessages,
+        setCurrentMessages,
+        messagesLoading,
+        setMessagesLoading,
     }), [
         chats, 
         chatsLoading, 
@@ -75,7 +161,11 @@ export function ChatProvider({ children }) {
         updateChat,
         onSelectChat,
         openPersonalChat,
-        closeChat 
+        closeChat,
+        currentMessages,
+        setCurrentMessages,
+        messagesLoading,
+        setMessagesLoading,
     ])
 
     return (

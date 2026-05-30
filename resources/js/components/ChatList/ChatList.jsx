@@ -99,17 +99,6 @@ export default function ChatList({ onOpenSidebar, onTabChange }) {
                             onDelete={handleDeleteChat}
                             onExit={handleExitChat}
                         />
-                        // <ChatItem 
-                        //     type={'button'}
-                        //     key={chat.id}
-                        //     selected={selectedChat?.id === chat.id}
-                        //     onSelectChat={onSelectChat}
-                        //     chat={chat}
-                        //     lastMessageTime={chat.latest_message ? (
-                        //         formatMessageTime(chat.latest_message.created_at)
-                        //     ) : ''}
-                        //     lastMessage={chat.latest_message?.content ?? 'Нет сообщений'}
-                        // />
                     ))
                 )}
             </div>

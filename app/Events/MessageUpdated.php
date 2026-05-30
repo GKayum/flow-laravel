@@ -21,6 +21,7 @@ class MessageUpdated implements ShouldBroadcast
      */
     public function __construct(
         public Message $message,
+        public bool $isLatest = false
     ) {
         $this->message->load('user');
     }
@@ -32,9 +33,15 @@ class MessageUpdated implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('chat.' . $this->message->chat_id),
-        ];
+        $userIds = $this->message->chat->users()->pluck('users.id')->toArray();
+
+        return array_map(function ($id) {
+            return new PrivateChannel('user.' . $id);
+        }, $userIds);
+
+        // return [
+        //     new PrivateChannel('chat.' . $this->message->chat_id),
+        // ];
     }
 
     public function broadcastAs(): string
@@ -45,7 +52,9 @@ class MessageUpdated implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
+            'chat_id' => $this->message->chat_id,
             'message' => (new MessageResource($this->message))->resolve(),
+            'is_latest' => $this->isLatest,
         ];
     }
 }

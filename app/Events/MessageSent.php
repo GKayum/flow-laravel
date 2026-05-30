@@ -34,9 +34,15 @@ class MessageSent implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('chat.' . $this->chat->id),
-        ];
+        $userIds = $this->chat->users()->pluck('users.id')->toArray();
+
+        return array_map(function ($id) {
+            return new PrivateChannel('user.' . $id);
+        }, $userIds);
+
+        // return [
+        //     new PrivateChannel('chat.' . $this->chat->id),
+        // ];
     }
 
     public function broadcastAs(): string
@@ -47,6 +53,7 @@ class MessageSent implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
+            'chat_id' => $this->chat->id,
             'message' => (new MessageResource($this->message))->resolve(),
         ];
     }
