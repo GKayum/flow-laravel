@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\MessageDeleted;
+use App\Events\MessageSent;
+use App\Events\MessageUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MessageResource;
 use App\Models\Chat;
@@ -32,6 +35,8 @@ class MessageController extends Controller
 
         $message = $request->user()->messages()->create($validated);
 
+        broadcast(new MessageSent($chat, $message))->toOthers();
+
         $message->load('user');
 
         return response()->json(new MessageResource($message));
@@ -48,12 +53,16 @@ class MessageController extends Controller
             'content' => $validated['content'],
         ]);
 
+        broadcast(new MessageUpdated($message))->toOthers();
+
         return response()->json(
             new MessageResource($message)
         );
     }
 
-    public function delete(Request $request, Message $message) {
+    public function delete(Message $message) {
+        broadcast(new MessageDeleted($message))->toOthers();
+        
         $message->delete();
 
         return response()->json([

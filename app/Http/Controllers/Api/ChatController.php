@@ -22,6 +22,7 @@ class ChatController extends Controller
             ->with(['users', 'latestMessage'])
             ->latest()
             ->get();
+
         return response()->json(
             ChatResource::collection($chats)
         );

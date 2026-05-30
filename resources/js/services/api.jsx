@@ -11,6 +11,18 @@ const api = axios.create({
     },
 })
 
+api.interceptors.request.use((config) => {
+    if (window.Echo && typeof window.Echo.socketId === 'function') {
+        const socketId = window.Echo.socketId()
+        if (socketId) {
+            config.headers['X-Socket-ID'] = socketId
+        }
+    }
+    return config
+}, (error) => {
+    return Promise.reject(error)
+})
+
 function handlerApiError(error, { setValidationErrors, setError }) {
     if (error.response) {
         if (error.response.status === 422) {
