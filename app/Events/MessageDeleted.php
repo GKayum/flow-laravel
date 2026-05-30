@@ -9,12 +9,15 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageDeleted implements ShouldBroadcast
+class MessageDeleted implements ShouldBroadcast, ShouldQueue
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    public $queue = 'messages';
 
     /**
      * Create a new event instance.
@@ -40,10 +43,6 @@ class MessageDeleted implements ShouldBroadcast
         return array_map(function ($id) {
             return new PrivateChannel('user.' . $id);
         }, $this->userIds);
-
-        // return [
-        //     new PrivateChannel('chat.' . $this->message->chat_id),
-        // ];
     }
 
     public function broadcastAs(): string

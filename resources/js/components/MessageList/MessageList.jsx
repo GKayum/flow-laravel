@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { useAuth } from "../../contexts/AuthContext"
 import MessageItem from "../MessageItem/MessageItem"
 import styles from "./MessageList.module.scss"
@@ -17,19 +17,39 @@ export default function MessageList({ messages, onDeleteMessage, onEditMessage }
         })
     }, [messages])
 
+    const isDifferentDay = (date1, date2) => {
+        if (!date1 || !date2) return false
+        return new Date(date1).toLocaleDateString() !== new Date(date2).toLocaleDateString()
+    }
+
     return (
         <div className={styles.messageList}>
-            {messages.map((message) => {
+            {messages.map((message, index) => {
                 const isCurrentUser = message.user.id === user?.id
 
+                const messageDate = message.created_at
+                const prevMessageDate = messages[index - 1] ? messages[index - 1].created_at : null
+
+                const showDateSeparator = index === 0 || isDifferentDay(messageDate, prevMessageDate)
+
                 return (
-                    <MessageItem 
-                        key={message.id} 
-                        message={message}
-                        isCurrentUser={isCurrentUser}
-                        onDelete={onDeleteMessage}
-                        onEdit={onEditMessage}
-                    />
+                    <React.Fragment key={message.id}>
+                        {showDateSeparator && (
+                            <div className={styles.dateSeparator}>
+                                {new Date(messageDate).toLocaleDateString('ru-RU', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    // year: 'numeric'
+                                })}
+                            </div>
+                        )}
+                        <MessageItem 
+                            message={message}
+                            isCurrentUser={isCurrentUser}
+                            onDelete={onDeleteMessage}
+                            onEdit={onEditMessage}
+                        />
+                    </React.Fragment>
                 )
             })}
             <div ref={messageEndRef}></div>
