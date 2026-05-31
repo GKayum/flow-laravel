@@ -4,7 +4,7 @@ import EditProfileTab from "../../pages/sideTabs/EditProfile/EditProfileTab"
 import CreateGroupTab from "../../pages/sideTabs/CreateGroup/CreateGroupTab"
 import SearchTab from "../../pages/sideTabs/Search/SearchTab"
 
-export default function Sidebar({ open, onClose, activeTab, onTabChange }) {
+export default function Sidebar({ open, onClose, activeTab, onTabChange, showToast }) {
     return (
         <div 
             className={styles.main}
@@ -14,7 +14,7 @@ export default function Sidebar({ open, onClose, activeTab, onTabChange }) {
         >
             {(() => {switch (activeTab) {
                 case 'profile':
-                    return <ProfileTab onTabChange={onTabChange} onClose={onClose} />
+                    return <ProfileTab showToast={showToast} onTabChange={onTabChange} onClose={onClose} />
                 case 'editProfile':
                     return <EditProfileTab onClose={onClose} />
                 case 'searchUsers':

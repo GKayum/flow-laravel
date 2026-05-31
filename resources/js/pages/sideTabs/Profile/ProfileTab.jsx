@@ -6,9 +6,16 @@ import { Pen } from "lucide-react"
 import { Trash } from "lucide-react"
 import { Calendar1 } from "lucide-react"
 import TabHeader from "../../../components/TabHeader/TabHeader"
+import { useCopyToClipboard } from "../../../hooks/useCopyToClipboard"
 
-export default function ProfileTab({ onTabChange, onClose }) {
+export default function ProfileTab({ onTabChange, onClose, showToast }) {
     const { user } = useAuth()
+    const { copy } = useCopyToClipboard()
+
+    const handleCopy = (text, label) => {
+        copy(text)
+        showToast(`${label} скопирован в буфер обмена`)
+    }
     
     return (
         <>
@@ -20,14 +27,22 @@ export default function ProfileTab({ onTabChange, onClose }) {
             </div>
             <div className={styles.body}>
                 <section className={styles.body__block}>
-                    <button className={styles.item}>
+                    <button 
+                        type="button" 
+                        className={styles.item} 
+                        onClick={() => handleCopy(user.email, 'Email')}
+                    >
                         <AtSign className={styles.icon} />
                         <div className={styles.item__body}>
                             <span className={styles.content}>{user.email}</span>
                             <label className={styles.label}>Email</label>
                         </div>
                     </button>
-                    <button className={styles.item}>
+                    <button
+                        type="button"
+                        className={styles.item}
+                        onClick={() => handleCopy(user.dateOfBirth, 'Дата рождения')}
+                    >
                         <Calendar1 className={styles.icon} />
                         <div className={styles.item__body}>
                             <span className={styles.content}>{user.dateOfBirth || 'Не указан'}</span>

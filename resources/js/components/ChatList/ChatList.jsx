@@ -8,7 +8,7 @@ import { Loader } from '../UI/Loader/Loader'
 import { useChat } from '../../contexts/ChatContext'
 import { api, handlerApiError } from '../../services/api'
 
-export default function ChatList({ onOpenSidebar, onTabChange }) {
+export default function ChatList({ onOpenSidebar, onTabChange, onCloseChatSidebar }) {
     const { setChats, chats, chatsLoading } = useChat()
     const [dropdownOpen, setDropdownOpen] = useState(false)
 
@@ -19,6 +19,8 @@ export default function ChatList({ onOpenSidebar, onTabChange }) {
             setChats(prev =>
                 prev.filter(chat => chat.id !== chatId)
             )
+
+            onCloseChatSidebar()
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }
@@ -31,6 +33,8 @@ export default function ChatList({ onOpenSidebar, onTabChange }) {
             setChats(prev =>
                 prev.filter(chat => chat.id !== chatId)
             )
+
+            onCloseChatSidebar()
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }

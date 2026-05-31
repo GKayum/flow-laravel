@@ -1,0 +1,51 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    
+    @include flex-center;
+
+    z-index: 30;
+
+    .toastBlock {
+        padding: 10px 20px;
+        color: #fff;
+        border-radius: 10px;
+        background-color: var(--color-black-2);
+        box-shadow: var(--shadow-lg);
+        text-align: center;
+
+        @include flex-center;
+
+        animation: fadeIn .2s ease-in-out forwards;
+
+        &.danger {
+            background-color: var(--color-red-1);
+            color: var(--color-red-2);
+        }
+
+        &.success {
+            background-color: var(--color-green-1);
+            color: var(--color-green-2);
+        }
+
+        &.primary {
+            background-color: var(--color-blue-1);
+            color: var(--color-purple);
+            box-shadow: 0 0 15px -3px var(--color-blue-1), 0 4px 6px -4px var(--color-blue-1);
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(.98);
+    }
+    to {
+        opacity: .95;
+        transform: scale(1);
+    }
+}

@@ -86,6 +86,7 @@ export default function CreateGroupTab({ onClose }) {
             setUsers([])
             setValue('')
             setMembers([])
+            setFormData({ avatar: null, name: '' })
             onSelectChat(response.data.chat)
             setChats(prev => [response.data.chat, ...prev])
         } catch (error) {

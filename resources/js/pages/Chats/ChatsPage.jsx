@@ -6,6 +6,8 @@ import ChatWindow from '../../components/ChatWindow/ChatWindow'
 import { useChatsPage } from '../../hooks/useChatsPage'
 import { ChatProvider } from '../../contexts/ChatContext'
 import ChatSidebar from '../../layouts/ChatSidebar/ChatSidebar'
+import { useToast } from '../../hooks/useToast'
+import Toast from '../../components/UI/Toast/Toast'
 
 export default function ChatsPage() {
     const {
@@ -18,6 +20,8 @@ export default function ChatsPage() {
         onTabChange,
     } = useChatsPage()
 
+    const { toast, showToast, hideToast } = useToast()
+
     return (
         <ChatProvider>
         <main className={styles.main}>
@@ -29,6 +33,7 @@ export default function ChatsPage() {
                 <ChatList
                     onOpenSidebar={() => openSidebar("main")}
                     onTabChange={(tab) => onTabChange("main", tab)}
+                    onCloseChatSidebar={() => closeSidebar("chat")}
                 />
 
                 <Sidebar 
@@ -36,6 +41,7 @@ export default function ChatsPage() {
                     onClose={() => closeSidebar("main")} 
                     activeTab={activeTab}
                     onTabChange={(tab) => onTabChange("main", tab)}
+                    showToast={showToast}
                 />
             </aside>
             <div className={styles.body}>
@@ -52,6 +58,14 @@ export default function ChatsPage() {
                 />
             </div>
         </main>
+
+        {toast.visible && (
+            <Toast
+                message={toast.message}
+                type={toast.type}
+                onClose={hideToast}
+            />
+        )}
         </ChatProvider>
     )
 }

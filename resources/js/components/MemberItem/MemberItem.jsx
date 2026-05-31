@@ -7,9 +7,11 @@ import ContextMenu from "../UI/ContextMenu/ContextMenu"
 import Avatar from "../UI/Avatar/Avatar"
 import { ShieldMinus } from "lucide-react"
 import { ShieldPlus } from "lucide-react"
+import { useChat } from "../../contexts/ChatContext"
 
 export default function MemberItem({ member, onDelete, onChangeRole }) {
     const { user } = useAuth()
+    const { openPersonalChat } = useChat()
     const [contextMenu, setContextMenu] = useState(null)
 
     const handleContextMenu = (e) => {
@@ -31,6 +33,12 @@ export default function MemberItem({ member, onDelete, onChangeRole }) {
         { type: 'danger', icon: Trash, label: 'Удалить из группы', action: handleDelete },
     ], [handleChangeRole, handleDelete])
 
+    const handleClick = (member) => {
+        if (user.id !== member.id) {
+            openPersonalChat(member.id)
+        }
+    }
+
     return (
         <>
         {contextMenu && (
@@ -44,6 +52,7 @@ export default function MemberItem({ member, onDelete, onChangeRole }) {
         <button
             className={styles.item} 
             onContextMenu={handleContextMenu}
+            onClick={() => handleClick(member)}
         >
             <Avatar user={member} size="2.625rem" fontSize="1.3rem" />
             <div className={styles.item__body}>
