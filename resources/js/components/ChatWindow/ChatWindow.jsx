@@ -9,12 +9,10 @@ import { api, handlerApiError } from '../../services/api'
 import { useChat } from '../../contexts/ChatContext'
 import { usePlural } from '../../hooks/usePlural'
 import { useChatDisplay } from '../../hooks/useChatDisplay'
-import echo from '../../echo'
 
 export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose }) {
     const { 
         selectedChat, 
-        selectedChatId, 
         onCloseChat, 
         updateChat,
         setCurrentMessages,

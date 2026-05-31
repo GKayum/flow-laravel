@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\Chat\ChatCreated;
+use App\Events\Chat\ChatDeleted;
+use App\Events\Chat\ChatUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ChatResource;
 use App\Http\Resources\UserResource;
 use App\Models\Chat;
-use App\Models\ChatMember;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -100,8 +103,9 @@ class ChatController extends Controller
         }
         
         $chat->users()->sync($syncData);
-
         $chat->load('users'); // Eager Loading
+
+        broadcast(new ChatCreated($chat))->toOthers();
 
         return response()->json([
             'message' => 'Групповой чат успешно создан!',
@@ -135,8 +139,9 @@ class ChatController extends Controller
         }
 
         $chat->update($validated);
-
         $chat->load('users'); // Eager Loading
+
+        broadcast(new ChatUpdated($chat))->toOthers();
 
         return response()->json([
             'message' => 'Данные чата изменены',
@@ -146,6 +151,11 @@ class ChatController extends Controller
 
     public function delete(Chat $chat) {
         Gate::authorize('delete', [$chat]);
+
+        $userIds = $chat->users()->pluck('users.id')->toArray();
+        $chatId = $chat->id;
+
+        broadcast(new ChatDeleted($chatId, $userIds))->toOthers();
 
         $chat->delete();
 
@@ -165,7 +175,7 @@ class ChatController extends Controller
     }
 
     public function addMembers(Request $request, Chat $chat) {
-        Gate::authorize('update', [$chat]);
+        Gate::authorize('addMember', [$chat]);
 
         $validator = Validator::make($request->all(), [
             'members' => 'required|array',
@@ -179,20 +189,20 @@ class ChatController extends Controller
         $chat->load('users');
 
         return response()->json([
-            'message' => 'Участники чата добавлены',
+            'message' => 'Пользователи добавлены в чат',
             'members' => UserResource::collection($chat->users)
         ]);
     }
 
-    public function removeMember(Chat $chat, ChatMember $member) {
+    public function removeMember(Chat $chat, User $member) {
         Gate::authorize('removeMember', [$chat, $member]);
 
-        $chat->users()->detach($member);
+        $chat->users()->detach($member->id);
 
         return response()->json(['message' => 'Участник чата удален']);
     }
 
-    public function changeRole(Request $request, Chat $chat, ChatMember $member) {
+    public function changeRole(Request $request, Chat $chat, User $member) {
         Gate::authorize('changeRole', [$chat]);
 
         $validator = Validator::make($request->all(), [
@@ -207,8 +217,9 @@ class ChatController extends Controller
 
         $updatedUser = $chat->users()->where('user_id', $member->id)->first();
 
-        return response()->json(
-            new UserResource($updatedUser)
-        );
+        return response()->json([
+            'message' => 'Роль участника ' . $updatedUser->name . ' изменен',
+            'user' => new UserResource($updatedUser)
+        ]);
     }
 }

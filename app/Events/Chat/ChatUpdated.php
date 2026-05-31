@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Events;
+namespace App\Events\Chat;
 
-use App\Http\Resources\MessageResource;
-use App\Models\Message;
+use App\Http\Resources\ChatResource;
+use App\Models\Chat;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -13,20 +13,16 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageUpdated implements ShouldBroadcast, ShouldQueue
+class ChatUpdated implements ShouldBroadcast, ShouldQueue
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-
-    public $queue = 'messages';
 
     /**
      * Create a new event instance.
      */
     public function __construct(
-        public Message $message,
-        public bool $isLatest = false
+        public Chat $chat
     ) {
-        $this->message->load('user');
     }
 
     /**
@@ -36,24 +32,22 @@ class MessageUpdated implements ShouldBroadcast, ShouldQueue
      */
     public function broadcastOn(): array
     {
-        $userIds = $this->message->chat->users()->pluck('users.id')->toArray();
+        $userIds = $this->chat->users()->pluck('users.id')->toArray();
 
         return array_map(function ($id) {
-            return new PrivateChannel('user.' . $id);
+            return new PrivateChannel("user.{$id}");
         }, $userIds);
     }
 
     public function broadcastAs(): string
     {
-        return 'message.updated';
+        return 'chat.updated';
     }
 
     public function broadcastWith(): array
     {
         return [
-            'chat_id' => $this->message->chat_id,
-            'message' => (new MessageResource($this->message))->resolve(),
-            'is_latest' => $this->isLatest,
+            'chat' => new ChatResource($this->chat),
         ];
     }
 }

@@ -40,26 +40,19 @@ export function ChatProvider({ children }) {
         )
     }, [])
 
-    const loadMessages = useCallback(async (chatId) => {
+    useEffect(() => {
+        if (!selectedChatId) {
+            setCurrentMessages([])
+            return
+        }
+
         setMessagesLoading(true)
 
-        try {
-            const response = await api.get(`/api/message/${chatId}/list`)
-            setCurrentMessages(response.data)
-        } catch (error) {
-            console.error('Messages load error:', error)
-        } finally {
-            setMessagesLoading(false)
-        }
-    }, [])
-
-    useEffect(() => {
-        if (selectedChatId) {
-            loadMessages(selectedChatId)
-        } else {
-            setCurrentMessages([])
-        }
-    }, [selectedChatId, loadMessages])
+        api.get(`/api/message/${selectedChatId}/list`)
+            .then(response => setCurrentMessages(response.data))
+            .catch(error => console.error('Messages load error:', error))
+            .finally(() => setMessagesLoading(false))
+    }, [selectedChatId])
 
     useEffect(() => {
         if (!user?.id || !window.Echo) return
@@ -67,47 +60,66 @@ export function ChatProvider({ children }) {
         const channel = window.Echo.private(`user.${user.id}`)
 
         channel.listen('.message.sent', (data) => {
-            const { chat_id, message } = data
-
             updateChat({
-                id: chat_id,
-                latestMessage: message
+                id: data.chat_id,
+                latestMessage: data.message
             })
 
-            if (chat_id === selectedChatId) {
-                setCurrentMessages(prev => [...prev, message])
+            if (data.chat_id === selectedChatId) {
+                setCurrentMessages(prev => [...prev, data.message])
             }
         })
 
         channel.listen('.message.updated', (data) => {
-            const { chat_id, message, is_latest } = data
-
-            if (chat_id === selectedChatId) {
+            if (data.chat_id === selectedChatId) {
                 setCurrentMessages(prev =>
-                    prev.map(m => (m.id === message.id ? message : m))
+                    prev.map(m => (m.id === data.message.id ? data.message : m))
                 );
             }
 
-            if (is_latest) {
+            if (data.is_latest) {
                 updateChat({
-                    id: chat_id,
-                    latestMessage: message
+                    id: data.chat_id,
+                    latestMessage: data.message
                 })
             }
         })
 
         channel.listen('.message.deleted', (data) => {
-            const { chat_id, message_id, latest_message } = data;
-
             updateChat({
-                id: chat_id,
-                latestMessage: latest_message
+                id: data.chat_id,
+                latestMessage: data.latest_message
             })
 
-            if (chat_id === selectedChatId) {
+            if (data.chat_id === selectedChatId) {
                 setCurrentMessages(prev =>
-                    prev.filter(m => m.id !== message_id)
+                    prev.filter(m => m.id !== data.message_id)
                 );
+            }
+        })
+
+        channel.listen('.chat.created', (data) => {
+            // if (!data?.chat) return
+
+            setChats(prev => [data.chat, ...prev])
+        })
+
+        channel.listen('.chat.updated', (data) => {
+            // if (!data?.chat) return
+
+            updateChat(data.chat)
+        })
+
+        channel.listen('.chat.deleted', (data) => {
+            // if (!data?.chat_id) return
+
+            setChats(prev =>
+                prev.filter(chat => chat.id !== data.chat_id)
+            )
+
+            if (selectedChatId === data.chat_id) {
+                setSelectedChatId(null)
+                setCurrentMessages([])
             }
         })
 

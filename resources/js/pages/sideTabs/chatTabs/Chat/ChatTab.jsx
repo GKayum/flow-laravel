@@ -9,7 +9,7 @@ import { api, handlerApiError } from "../../../../services/api"
 import { useCallback } from "react"
 import { UserRoundPlus } from "lucide-react"
 
-export default function ChatTab({ onChatTabChange, onClose }) {
+export default function ChatTab({ onChatTabChange, showToast, onClose }) {
     const { selectedChat, updateChat } = useChat()
 
     const memberWord = usePlural(selectedChat?.members.length, ['участник', 'участника', 'участников'])
@@ -24,8 +24,9 @@ export default function ChatTab({ onChatTabChange, onClose }) {
                 id: selectedChat.id,
                 members: updatedMembers,
             })
+            showToast(response.data.message)
         } catch (error) {
-            handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+            handlerApiError(error, { setValidationErrors: () => {}, setError: (error) => showToast(error, 'danger') })
         }
     }, [selectedChat, updateChat])
 
@@ -36,7 +37,7 @@ export default function ChatTab({ onChatTabChange, onClose }) {
                 role: newRole,
             })
 
-            const updatedMember = response.data
+            const updatedMember = response.data.user
             const updatedMembers = selectedChat.members.map(m => 
                 m.id === memberId ? { ...m, ...updatedMember } : m
             )
@@ -44,10 +45,11 @@ export default function ChatTab({ onChatTabChange, onClose }) {
                 id: selectedChat.id,
                 members: updatedMembers,
             })
+            showToast(response.data.message)
         } catch (error) {
-            handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+            handlerApiError(error, { setValidationErrors: () => {}, setError: (error) => showToast(error, 'danger') })
         }
-    }, [selectedChat, updateChat])
+    }, [selectedChat, updateChat, showToast])
 
     if (!selectedChat) return null
 

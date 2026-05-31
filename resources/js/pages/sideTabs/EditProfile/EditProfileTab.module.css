@@ -1,0 +1,58 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin: 1.2rem;
+}
+.main .avatarContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.main .avatarContainer__name {
+  font-weight: 600;
+  font-size: 20px;
+}
+.main .body__block {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(25, 24, 22, 0.2);
+}
+.main .body__block:last-child {
+  border-bottom: none;
+}
+.main .body__block .item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 5px 15px;
+  border-radius: 10px;
+}
+.main .body__block .item.buttonEdit {
+  background-color: var(--color-blue-1);
+  color: var(--color-purple);
+  cursor: pointer;
+  margin-top: 5px;
+}
+.main .body__block .item.buttonEdit:hover {
+  outline: 1px var(--color-purple) solid;
+}
+.main .body__block .item.buttonEdit .buttonIcon {
+  color: var(--color-purple);
+}
+.main .body__block .item .icon {
+  color: var(--color-grey-1);
+}
+.main .body__block .item__body {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  line-height: 1.5;
+}
+.main .body__block .item__body .label {
+  font-size: 14px;
+  color: var(--color-grey-1);
+}/*# sourceMappingURL=EditProfileTab.module.css.map */

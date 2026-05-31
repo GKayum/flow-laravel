@@ -5,7 +5,7 @@ import AddMember from "../../pages/sideTabs/chatTabs/AddMember/AddMember"
 import UserTab from "../../pages/sideTabs/chatTabs/User/UserTab"
 import { useChat } from "../../contexts/ChatContext"
 
-export default function ChatSidebar({ open, onClose, chatActiveTab, onChatTabChange }) {
+export default function ChatSidebar({ open, onClose, chatActiveTab, onChatTabChange, showToast }) {
     const { selectedChat } = useChat()
 
     let activeTabToRender = chatActiveTab
@@ -43,13 +43,13 @@ export default function ChatSidebar({ open, onClose, chatActiveTab, onChatTabCha
         >
             {(() => {switch (activeTabToRender) {
                 case 'chat':
-                    return <ChatTab onChatTabChange={onChatTabChange} onClose={onClose} />
+                    return <ChatTab onChatTabChange={onChatTabChange} showToast={showToast} onClose={onClose} />
                 case 'editChat':
                     return <EditChatTab onClose={onClose} />
                 case 'addMember':
-                    return <AddMember onChatTabChange={onChatTabChange} onClose={onClose} />
+                    return <AddMember onChatTabChange={onChatTabChange} showToast={showToast} onClose={onClose} />
                 case 'user':
-                    return <UserTab onClose={onClose} />
+                    return <UserTab onClose={onClose} showToast={showToast} />
                 default:
                     return null;
             }})()}

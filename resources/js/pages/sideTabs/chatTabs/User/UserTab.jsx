@@ -5,10 +5,17 @@ import TabHeader from "../../../../components/TabHeader/TabHeader"
 import { useChatDisplay } from "../../../../hooks/useChatDisplay"
 import { useChat } from "../../../../contexts/ChatContext"
 import Avatar from "../../../../components/UI/Avatar/Avatar"
+import { useCopyToClipboard } from "../../../../hooks/useCopyToClipboard"
 
-export default function UserTab({ onClose }) {
+export default function UserTab({ onClose, showToast }) {
     const { selectedChat } = useChat()
+    const { copy } = useCopyToClipboard()
     const chatDisplay = useChatDisplay(selectedChat)
+
+    const handleCopy = (text, label) => {
+        copy(text)
+        showToast(`${label} скопирован в буфер обмена`)
+    }
 
     if (!selectedChat) return null
     
@@ -25,14 +32,22 @@ export default function UserTab({ onClose }) {
             </div>
             <div className={styles.body}>
                 <section className={styles.body__block}>
-                    <button className={styles.item}>
+                    <button
+                        type="button"
+                        className={styles.item}
+                        onClick={() => handleCopy(chatDisplay.companion?.email, 'Email')}
+                    >
                         <AtSign className={styles.icon} />
                         <div className={styles.item__body}>
                             <span className={styles.content}>{chatDisplay.companion?.email}</span>
                             <label className={styles.label}>Email</label>
                         </div>
                     </button>
-                    <button className={styles.item}>
+                    <button
+                        type="button"
+                        className={styles.item}
+                        onClick={() => handleCopy(chatDisplay.companion?.dateOfBirth, 'Дата рождения')}
+                    >
                         <Calendar1 className={styles.icon} />
                         <div className={styles.item__body}>
                             <span className={styles.content}>{chatDisplay.companion?.dateOfBirth || 'Не указан'}</span>

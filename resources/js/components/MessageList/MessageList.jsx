@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useAuth } from "../../contexts/AuthContext"
 import MessageItem from "../MessageItem/MessageItem"
 import styles from "./MessageList.module.scss"
@@ -6,6 +6,7 @@ import styles from "./MessageList.module.scss"
 export default function MessageList({ messages, onDeleteMessage, onEditMessage }) {
     const { user } = useAuth()
     const messageEndRef = useRef(null)
+    const [editingMessageId, setEditingMessageId] = useState(null)
 
     useEffect(() => {
         messageEndRef.current?.scrollIntoView()
@@ -46,6 +47,9 @@ export default function MessageList({ messages, onDeleteMessage, onEditMessage }
                         <MessageItem 
                             message={message}
                             isCurrentUser={isCurrentUser}
+                            isEditing={editingMessageId === message.id}
+                            onStartEdit={() => setEditingMessageId(message.id)}
+                            onCancelEdit={() => setEditingMessageId(null)}
                             onDelete={onDeleteMessage}
                             onEdit={onEditMessage}
                         />

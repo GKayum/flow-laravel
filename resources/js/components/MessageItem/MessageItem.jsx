@@ -10,9 +10,8 @@ import { Undo2 } from "lucide-react"
 import { Copy } from "lucide-react"
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard"
 
-export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }) {
+export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, isEditing, onStartEdit, onCancelEdit }) {
     const [contextMenu, setContextMenu] = useState(null)
-    const [isEditing, setIsEditing] = useState(false)
     const editDivRef = useRef(null)
     const { copy } = useCopyToClipboard()
 
@@ -37,6 +36,8 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }
         
         if (isCurrentUser) {
             setContextMenu({ x: e.clientX, y: e.clientY })
+
+            if (!isEditing) onCancelEdit()
         }
     }
 
@@ -45,7 +46,7 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }
     const handleDelete = useCallback(() => onDelete(message.id), [onDelete, message.id])
 
     const startEdit = useCallback(() => {
-        setIsEditing(true)
+        onStartEdit()
     }, [])
 
     const handleSaveEdit = () => {
@@ -53,11 +54,11 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit }
         if (newContent && newContent !== message.content) {
             onEdit(message.id, newContent)
         }
-        setIsEditing(false)
+        onCancelEdit()
     }
 
     const handleCancelEdit = () => {
-        setIsEditing(false)
+        onCancelEdit()
     }
 
     const handleKeyDown = (e) => {

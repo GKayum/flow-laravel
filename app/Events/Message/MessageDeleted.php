@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Events;
+namespace App\Events\Message;
 
 use App\Http\Resources\MessageResource;
 use App\Models\Message;
@@ -17,15 +17,13 @@ class MessageDeleted implements ShouldBroadcast, ShouldQueue
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $queue = 'messages';
-
     /**
      * Create a new event instance.
      */
     public function __construct(
-        public int $chatId,
-        public int $messageId,
         public array $userIds,
+        public int $messageId,
+        public int $chatId,
         public ?Message $newLatestMessage,
     ) {
         if ($this->newLatestMessage) {
@@ -41,7 +39,7 @@ class MessageDeleted implements ShouldBroadcast, ShouldQueue
     public function broadcastOn(): array
     {
         return array_map(function ($id) {
-            return new PrivateChannel('user.' . $id);
+            return new PrivateChannel("user.{$id}");
         }, $this->userIds);
     }
 
@@ -55,7 +53,6 @@ class MessageDeleted implements ShouldBroadcast, ShouldQueue
         return [
             'chat_id' => $this->chatId,
             'message_id' => $this->messageId,
-            // Если новое последнее сообщение существует, приводим его через ресурс, иначе null
             'latest_message' => $this->newLatestMessage 
                 ? (new MessageResource($this->newLatestMessage))->resolve() 
                 : null,

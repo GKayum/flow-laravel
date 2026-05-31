@@ -55,6 +55,7 @@ export default function ChatsPage() {
                     onClose={() => closeSidebar("chat")}
                     chatActiveTab={chatActiveTab}
                     onChatTabChange={(tab) => onTabChange("chat", tab)}
+                    showToast={showToast}
                 />
             </div>
         </main>

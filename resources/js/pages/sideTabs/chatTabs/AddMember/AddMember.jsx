@@ -8,7 +8,7 @@ import { useChat } from "../../../../contexts/ChatContext"
 import { CircleCheck } from "lucide-react"
 import { debounce } from "../../../../utils/debounce"
 
-export default function AddMember({ onChatTabChange, onClose }) {
+export default function AddMember({ onChatTabChange, showToast, onClose }) {
     const { selectedChat, updateChat } = useChat()
     const [users, setUsers] = useState([])
     const [members, setMembers] = useState([])
@@ -76,8 +76,9 @@ export default function AddMember({ onChatTabChange, onClose }) {
             onChatTabChange('chat')
             setValue('')
             setMembers([])
+            showToast(response.data.message)
         } catch (error) {
-            handlerApiError(error, { setValidationErrors, setError })
+            handlerApiError(error, { setValidationErrors: () => {}, setError: (error) => showToast(error, 'danger') })
         } finally {
             setSubmitting(false)
         }

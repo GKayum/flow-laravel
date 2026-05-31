@@ -51,6 +51,7 @@ export default function EditChatTab({ onClose }) {
             updateChat(response.data.chat)
         } catch (error) {
             handlerApiError(error, { setValidationErrors, setError })
+            setTimeout(() => setError(''), 2000);
         } finally {
             setAvatarLoading(false)
         }
@@ -71,11 +72,10 @@ export default function EditChatTab({ onClose }) {
             updateChat(response.data.chat)
 
             setMessage(response.data.message)
-            setTimeout(() => {
-                setMessage('')            
-            }, 2000);
+            setTimeout(() => setMessage(''), 2000);
         } catch (error) {
             handlerApiError(error, { setValidationErrors, setError })
+            setTimeout(() => setError(''), 2000);
         } finally {
             setSubmitting(false)
         }
@@ -88,6 +88,7 @@ export default function EditChatTab({ onClose }) {
             setChats(prev =>
                 prev.filter(chat => chat.id !== selectedChat.id)
             )
+            onClose()
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }

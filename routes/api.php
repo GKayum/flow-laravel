@@ -5,7 +5,6 @@ use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\UserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);

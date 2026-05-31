@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Events\MessageDeleted;
-use App\Events\MessageSent;
-use App\Events\MessageUpdated;
+use App\Events\Message\MessageDeleted;
+use App\Events\Message\MessageSent;
+use App\Events\Message\MessageUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MessageResource;
 use App\Models\Chat;
@@ -64,15 +64,15 @@ class MessageController extends Controller
     }
 
     public function delete(Message $message) {
-        $chat = $message->chat;
-        $userIds = $chat->users()->pluck('users.id')->toArray();
 
-        $newLatest = $chat->messages()
+        $userIds = $message->chat->users()->pluck('users.id')->toArray();
+
+        $newLatest = $message->chat->messages()
             ->where('id', '!=', $message->id)
             ->latest()
             ->first();
 
-        broadcast(new MessageDeleted($chat->id, $message->id, $userIds, $newLatest))->toOthers();
+        broadcast(new MessageDeleted($userIds, $message->id, $message->chat->id, $newLatest))->toOthers();
         
         $message->delete();
 
