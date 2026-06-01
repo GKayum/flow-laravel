@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Events\Chat\ChatCreated;
 use App\Events\Chat\ChatDeleted;
 use App\Events\Chat\ChatMemberAdded;
+use App\Events\Chat\ChatMemberRemoved;
 use App\Events\Chat\ChatUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ChatResource;
@@ -199,7 +200,12 @@ class ChatController extends Controller
     public function removeMember(Chat $chat, User $member) {
         Gate::authorize('removeMember', [$chat, $member]);
 
+        $userIds = $chat->users()->pluck('users.id')->toArray();
+
         $chat->users()->detach($member->id);
+        $chat->load('users');
+
+        broadcast(new ChatMemberRemoved($chat, $member, $userIds))->toOthers();
 
         return response()->json(['message' => 'Участник чата удален']);
     }

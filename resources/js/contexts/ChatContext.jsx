@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../services/api";
 import { useAuth } from "./AuthContext"
 import { useEcho } from "../hooks/useEcho";
@@ -13,11 +13,6 @@ export function ChatProvider({ children }) {
     const [currentMessages, setCurrentMessages] = useState([])
     const [messagesLoading, setMessagesLoading] = useState(false)
 
-    // const selectedChatIdRef = useRef(selectedChatId)
-    // useEffect(() => {
-    //     selectedChatIdRef.current = selectedChatId
-    // }, [selectedChatId])
-
     useEffect(() => {
         if ('Notification' in window && Notification.permission === 'default') {
             Notification.requestPermission()
@@ -25,12 +20,13 @@ export function ChatProvider({ children }) {
     }, [])
 
     const showBrowserNotification = useCallback((message) => {
-        if (document.visibilityState !== 'hidden') return
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification("Новое сообщение", {
-                body: `${message.user.name}: ${message.content}`,
-                icon: message.user.avatar || '/icons/default-avatar.png',
-            })
+        if (document.visibilityState === 'hidden') {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification("Новое сообщение", {
+                    body: `${message.user.name}: ${message.content}`,
+                    icon: message.user.avatar || '/icons/default-avatar.png',
+                })
+            }
         }
 
     }, [])
@@ -157,8 +153,30 @@ export function ChatProvider({ children }) {
     }, [selectedChatId])
 
     useEcho(channelName, "chatmember.added", (data) => {
-        updateChat({ id: data.chat_id, members: data.members })
-    }, [updateChat])
+        setChats(prev =>
+            prev.some(chat => chat.id === data.chat.id)
+                ? prev.map(chat =>
+                    chat.id === data.chat.id
+                        ? { ...chat, members: data.members}
+                        : chat)
+                : [data.chat, ...prev]
+        )
+    }, [])
+
+    useEcho(channelName, "chatmember.removed", (data) => {
+        if (data.member_id === user?.id) {
+            setChats(prev =>
+                prev.filter(chat => chat.id !== data.chat_id)
+            )
+
+            if (selectedChatId === data.chat_id) {
+                setSelectedChatId(null)
+                setCurrentMessages([])
+            }
+        } else {
+            updateChat({ id: data.chat_id, members: data.members })
+        }
+    }, [selectedChat, updateChat, user?.id])
 
     useEcho(channelName, "user.updated", (data) => {
         updateMemberInChats(data.user)

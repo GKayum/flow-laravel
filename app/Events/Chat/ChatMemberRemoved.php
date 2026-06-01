@@ -2,9 +2,9 @@
 
 namespace App\Events\Chat;
 
-use App\Http\Resources\ChatResource;
 use App\Http\Resources\UserResource;
 use App\Models\Chat;
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -14,7 +14,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class ChatMemberAdded implements ShouldBroadcast, ShouldQueue
+class ChatMemberRemoved implements ShouldBroadcast, ShouldQueue
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -23,6 +23,8 @@ class ChatMemberAdded implements ShouldBroadcast, ShouldQueue
      */
     public function __construct(
         public Chat $chat,
+        public User $member,
+        public array $userIds,
     ) {
     }
 
@@ -33,23 +35,22 @@ class ChatMemberAdded implements ShouldBroadcast, ShouldQueue
      */
     public function broadcastOn(): array
     {
-        $userIds = $this->chat->users()->pluck('users.id')->toArray();
-
         return array_map(function ($id) {
             return new PrivateChannel("user.{$id}");
-        }, $userIds);
+        }, $this->userIds);
     }
 
     public function broadcastAs(): string
     {
-        return 'chatmember.added';
+        return 'chatmember.removed';
     }
 
     public function broadcastWith(): array
     {
         return [
-            'chat' => new ChatResource($this->chat),
-            'members' => UserResource::collection($this->chat->users)
+            'chat_id'   => $this->chat->id,
+            'member_id' => $this->member->id,
+            'members'   => UserResource::collection($this->chat->users)
         ];
     }
 }

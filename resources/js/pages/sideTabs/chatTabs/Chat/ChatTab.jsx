@@ -17,7 +17,7 @@ export default function ChatTab({ onChatTabChange, showToast, onClose }) {
     const handleDeleteUser = useCallback(async (memberId) => {
         if (!selectedChat) return
         try {
-            await api.delete(`/api/chat/${selectedChat.id}/member/${memberId}`)
+            const response = await api.delete(`/api/chat/${selectedChat.id}/member/${memberId}`)
 
             const updatedMembers = selectedChat.members.filter(m => m.id !== memberId)
             updateChat({
