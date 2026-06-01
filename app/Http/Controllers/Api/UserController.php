@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\User\UserUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -20,26 +20,15 @@ class UserController extends Controller
     }
 
     public function update(Request $request) {
-        $data = $request->all();
         $user = $request->user();
         
-        if (isset($data['email']) && $data['email'] === $user->email) {
-            unset($data['email']);
-        }
-
-        if (isset($data['avatar']) && $data['avatar'] === $user->avatar) {
-            unset($data['avatar']);
-        }
-        
-        $validator = Validator::make($data, [
+        $validated = $request->validate([
             'name' => 'sometimes|required|string|max:64',
-            'email' => 'sometimes|required|email|max:255|unique:users,email',
+            'email' => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
             'password' => 'sometimes|required|min:5|confirmed',
             'avatar' => 'nullable|image|mimetypes:image/jpg,image/jpeg,image/png,image/webp', // TODO <<GIF>>
             'date_of_birth' => 'nullable|date',
         ]);
-
-        $validated = $validator->validated();
 
         if ($request->hasFile('avatar')) {
             if (!empty($user->avatar)) {
@@ -54,8 +43,9 @@ class UserController extends Controller
             $validated['password'] = Hash::make($validated['password']);
         }
 
-        $user = Auth::user();
         $user->update($validated);
+
+        broadcast(new UserUpdated($user))->toOthers();
 
         return response()->json([
             'message' => 'Данные изменены',

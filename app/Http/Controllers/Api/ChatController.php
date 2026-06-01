@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Events\Chat\ChatCreated;
 use App\Events\Chat\ChatDeleted;
+use App\Events\Chat\ChatMemberAdded;
 use App\Events\Chat\ChatUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ChatResource;
@@ -185,8 +186,9 @@ class ChatController extends Controller
         $validated = $validator->validated();
 
         $chat->users()->syncWithoutDetaching($validated['members']);
-
         $chat->load('users');
+
+        broadcast(new ChatMemberAdded($chat))->toOthers();
 
         return response()->json([
             'message' => 'Пользователи добавлены в чат',

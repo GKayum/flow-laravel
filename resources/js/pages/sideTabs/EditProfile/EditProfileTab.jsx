@@ -13,9 +13,11 @@ import Alert from "../../../components/UI/Alert/Alert"
 import { X } from "lucide-react"
 import TabHeader from "../../../components/TabHeader/TabHeader"
 import UserAvatarCropper from "../../../components/UI/UserAvatarCropper/UserAvatarCropper"
+import { useChat } from "../../../contexts/ChatContext"
 
 export default function EditProfileTab({ onClose }) {
     const { user, setUser } = useAuth()
+    const { updateMemberInChats, updateMemberInMessages } = useChat()
     const [formData, setFormData] = useState({
         avatar: user.avatar,
         name: user.name,
@@ -31,11 +33,6 @@ export default function EditProfileTab({ onClose }) {
         submitting: false,
         avatarLoading: false,
     })
-    // const [message, setMessage] = useState('')
-    // const [error, setError] = useState('')
-    // const [validationErrors, setValidationErrors] = useState({})
-    // const [submitting, setSubmitting] = useState(false)
-    // const [avatarLoading, setAvatarLoading] = useState(false)
 
     const handleChangeAvatar = async (avatar) => {
         if (!avatar) return
@@ -53,8 +50,13 @@ export default function EditProfileTab({ onClose }) {
                 headers: {'Content-Type' : 'multipart/form-data'}
             })
             setUser(response.data.user)
+            updateMemberInChats(response.data.user)
+            updateMemberInMessages(response.data.user)
         } catch (error) {
-            handlerApiError(error, { setValidationErrors, setError })
+            handlerApiError(error, {
+                setValidationErrors: (error) => setFormStatus(prev => ({ ...prev, validationErrors: error})),
+                setError: (error) => setFormStatus(prev => ({ ...prev, error: error}))
+            })
         } finally {
             setFormStatus(prev => ({ ...prev, avatarLoading: false }))
         }
@@ -82,12 +84,17 @@ export default function EditProfileTab({ onClose }) {
             await api.get('/sanctum/csrf-cookie')
             const response = await api.post('/api/user/update', data)
             setUser(response.data.user)
+            updateMemberInChats(response.data.user)
+            updateMemberInMessages(response.data.user)
             setFormStatus(prev => ({ ...prev, message: response.data.message })) 
             setTimeout(() => {
-                setMessage('')            
+                setFormStatus(prev => ({ ...prev, message: ''}))        
             }, 2000);
         } catch (error) {
-            handlerApiError(error, { setValidationErrors, setError })
+            handlerApiError(error, {
+                setValidationErrors: (error) => setFormStatus(prev => ({ ...prev, validationErrors: error})),
+                setError: (error) => setFormStatus(prev => ({ ...prev, error: error}))
+            })
             console.log(error);
         } finally {
             setFormStatus(prev => ({ ...prev, submitting: false }))

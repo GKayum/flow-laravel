@@ -1,18 +1,39 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../services/api";
 import { useAuth } from "./AuthContext"
+import { useEcho } from "../hooks/useEcho";
 
 const ChatContext = createContext()
 
 export function ChatProvider({ children }) {
+    const { user } = useAuth()
     const [chats, setChats] = useState([])
     const [chatsLoading, setChatsLoading] = useState(true)
     const [selectedChatId, setSelectedChatId] = useState(null)
-
-    const { user } = useAuth()
-
     const [currentMessages, setCurrentMessages] = useState([])
     const [messagesLoading, setMessagesLoading] = useState(false)
+
+    // const selectedChatIdRef = useRef(selectedChatId)
+    // useEffect(() => {
+    //     selectedChatIdRef.current = selectedChatId
+    // }, [selectedChatId])
+
+    useEffect(() => {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission()
+        }
+    }, [])
+
+    const showBrowserNotification = useCallback((message) => {
+        if (document.visibilityState !== 'hidden') return
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification("Новое сообщение", {
+                body: `${message.user.name}: ${message.content}`,
+                icon: message.user.avatar || '/icons/default-avatar.png',
+            })
+        }
+
+    }, [])
 
     useEffect(() => {
         api.get('/api/chat/list')
@@ -25,6 +46,26 @@ export function ChatProvider({ children }) {
             })
             .finally(() => setChatsLoading(false))
     }, [])
+
+    useEffect(() => {
+        if (!selectedChatId) {
+            setCurrentMessages([])
+            return
+        }
+        let isCurrentRequest = true
+        setMessagesLoading(true)
+
+        api.get(`/api/message/${selectedChatId}/list`)
+            .then(response => {
+                if (isCurrentRequest) setCurrentMessages(response.data)
+            })
+            .catch(error => console.error('Messages load error:', error))
+            .finally(() => {
+                if (isCurrentRequest) setMessagesLoading(false)
+            })
+
+        return () => { isCurrentRequest = false }
+    }, [selectedChatId])
 
     const selectedChat = useMemo(() => {
         return chats.find(chat => chat.id === selectedChatId) || null
@@ -40,93 +81,89 @@ export function ChatProvider({ children }) {
         )
     }, [])
 
-    useEffect(() => {
-        if (!selectedChatId) {
-            setCurrentMessages([])
-            return
+    const updateMemberInChats = useCallback((updatedUser) => {
+        setChats(prev => prev.map(chat => {
+            const hasLatestMessageFromUser = chat.latestMessage?.user?.id === updatedUser.id
+            return {
+                ...chat,
+                members: chat.members?.map(member =>
+                    member.id === updatedUser.id ? { ...member, ...updatedUser } : member
+                ),
+                latestMessage: hasLatestMessageFromUser
+                    ? { ...chat.latestMessage, user: { ...chat.latestMessage.user, ...updatedUser} }
+                    : chat.latestMessage
+            }
+        }))
+    }, [])
+
+    const updateMemberInMessages = useCallback((updatedUser) => {
+        setCurrentMessages(prev =>
+            prev.map(message =>
+                message.user?.id === updatedUser.id
+                    ? { ...message, user: { ...message.user, ...updatedUser } }
+                    : message
+            )
+        )
+    }, [])
+
+    const channelName = user?.id ? `user.${user.id}` : null
+
+    useEcho(channelName, "message.sent", (data) => {
+        updateChat({ id: data.chat_id, latestMessage: data.message })
+        showBrowserNotification(data.message)
+
+        if (data.chat_id === selectedChatId) {
+            setCurrentMessages(prev => [...prev, data.message])
         }
+    }, [selectedChatId, updateChat, showBrowserNotification])
 
-        setMessagesLoading(true)
+    useEcho(channelName, "message.updated", (data) => {
+        if (data.chat_id === selectedChatId) {
+            setCurrentMessages(prev =>
+                prev.map(m => (m.id === data.message.id ? data.message : m))
+            );
+        }
+        if (data.is_latest) {
+            updateChat({ id: data.chat_id, latestMessage: data.message })
+        }
+    }, [selectedChatId, updateChat])
 
-        api.get(`/api/message/${selectedChatId}/list`)
-            .then(response => setCurrentMessages(response.data))
-            .catch(error => console.error('Messages load error:', error))
-            .finally(() => setMessagesLoading(false))
+    useEcho(channelName, "message.deleted", (data) => {
+        updateChat({ id: data.chat_id, latestMessage: data.latest_message })
+        if (data.chat_id === selectedChatId) {
+            setCurrentMessages(prev =>
+                prev.filter(m => m.id !== data.message_id)
+            );
+        }
+    }, [selectedChatId, updateChat])
+
+    useEcho(channelName, "chat.created", (data) => {
+        setChats(prev => [data.chat, ...prev])
+    })
+
+    useEcho(channelName, "chat.updated", (data) => {
+        updateChat(data.chat)
+    }, [updateChat])
+
+    useEcho(channelName, "chat.deleted", (data) => {
+        setChats(prev =>
+            prev.filter(chat => chat.id !== data.chat_id)
+        )
+
+        if (selectedChatId === data.chat_id) {
+            setSelectedChatId(null)
+            setCurrentMessages([])
+        }
     }, [selectedChatId])
 
-    useEffect(() => {
-        if (!user?.id || !window.Echo) return
-        
-        const channel = window.Echo.private(`user.${user.id}`)
+    useEcho(channelName, "chatmember.added", (data) => {
+        updateChat({ id: data.chat_id, members: data.members })
+    }, [updateChat])
 
-        channel.listen('.message.sent', (data) => {
-            updateChat({
-                id: data.chat_id,
-                latestMessage: data.message
-            })
-
-            if (data.chat_id === selectedChatId) {
-                setCurrentMessages(prev => [...prev, data.message])
-            }
-        })
-
-        channel.listen('.message.updated', (data) => {
-            if (data.chat_id === selectedChatId) {
-                setCurrentMessages(prev =>
-                    prev.map(m => (m.id === data.message.id ? data.message : m))
-                );
-            }
-
-            if (data.is_latest) {
-                updateChat({
-                    id: data.chat_id,
-                    latestMessage: data.message
-                })
-            }
-        })
-
-        channel.listen('.message.deleted', (data) => {
-            updateChat({
-                id: data.chat_id,
-                latestMessage: data.latest_message
-            })
-
-            if (data.chat_id === selectedChatId) {
-                setCurrentMessages(prev =>
-                    prev.filter(m => m.id !== data.message_id)
-                );
-            }
-        })
-
-        channel.listen('.chat.created', (data) => {
-            // if (!data?.chat) return
-
-            setChats(prev => [data.chat, ...prev])
-        })
-
-        channel.listen('.chat.updated', (data) => {
-            // if (!data?.chat) return
-
-            updateChat(data.chat)
-        })
-
-        channel.listen('.chat.deleted', (data) => {
-            // if (!data?.chat_id) return
-
-            setChats(prev =>
-                prev.filter(chat => chat.id !== data.chat_id)
-            )
-
-            if (selectedChatId === data.chat_id) {
-                setSelectedChatId(null)
-                setCurrentMessages([])
-            }
-        })
-
-        return () => {
-            window.Echo.leave(`user.${user.id}`)
-        }
-    }, [user?.id, selectedChatId, updateChat])
+    useEcho(channelName, "user.updated", (data) => {
+        updateMemberInChats(data.user)
+        updateMemberInMessages(data.user)
+    }, [updateMemberInChats, updateMemberInMessages])
 
     const openPersonalChat = useCallback(async (userId) => {
         try {
@@ -165,6 +202,8 @@ export function ChatProvider({ children }) {
         setCurrentMessages,
         messagesLoading,
         setMessagesLoading,
+        updateMemberInMessages,
+        updateMemberInChats,
     }), [
         chats, 
         chatsLoading, 
@@ -175,9 +214,7 @@ export function ChatProvider({ children }) {
         openPersonalChat,
         closeChat,
         currentMessages,
-        setCurrentMessages,
         messagesLoading,
-        setMessagesLoading,
     ])
 
     return (
