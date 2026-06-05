@@ -19,6 +19,8 @@ export default function RegisterPage() {
     const [validationErrors, setValidationErrors] = useState({})
     const [loading, setLoading] = useState(false)
 
+    const [isFlipped, setIsFlipped] = useState(false)
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         setError('')
@@ -39,7 +41,13 @@ export default function RegisterPage() {
 
     return (
         <div className={styles.main}>
-            <h1 className={styles.main__title}>Flow</h1>
+            <div 
+                className={`${styles.titleContainer} ${isFlipped ? styles.flipped : ''}`}
+                onClick={() => setIsFlipped(!isFlipped)}
+            >
+                <h1 className={styles.title}>Flow</h1>
+                <h1 className={styles.title}>idup</h1>
+            </div>
             <form className={styles.form} onSubmit={handleSubmit}>
                 <div className={styles.form__item}>
                     <label htmlFor="name" className={styles.label}>Имя</label>

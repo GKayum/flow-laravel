@@ -72,7 +72,7 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, 
     }
 
     const menuItems = useMemo(() => [
-        { icon: Undo2, label: 'Ответить', action: () => {} },
+        // { icon: Undo2, label: 'Ответить', action: () => {} },
         { icon: Copy, label: 'Копировать', action: () => copy(message.content) },
         { icon: Pencil, label: 'Изменить', action: startEdit },
         { type: 'danger', icon: Trash, label: 'Удалить', action: handleDelete },
@@ -116,8 +116,15 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, 
                         </div>
                     ) : (
                         <>
-                        <span className={styles.message}>{message.content}</span>
-                        <span className={styles.time}>{message.time}</span>
+                        {message.image && (
+                            <div className={styles.imageWrapper}>
+                                <img src={message.image} className={styles.messageImage} />
+                            </div>
+                        )}
+                        <div className={styles.textContent}>
+                            {message.content && <span className={styles.message}>{message.content}</span>}
+                            <span className={styles.time}>{message.time}</span>
+                        </div>
                         </>
                     )}
                 </div>

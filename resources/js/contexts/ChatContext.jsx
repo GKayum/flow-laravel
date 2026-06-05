@@ -78,12 +78,16 @@ export function ChatProvider({ children }) {
     }, [])
 
     const updateMemberInChats = useCallback((updatedUser) => {
+        const { name, avatar, email, dateOfBirth } = updatedUser
+
         setChats(prev => prev.map(chat => {
             const hasLatestMessageFromUser = chat.latestMessage?.user?.id === updatedUser.id
             return {
                 ...chat,
                 members: chat.members?.map(member =>
-                    member.id === updatedUser.id ? { ...member, ...updatedUser } : member
+                    member.id === updatedUser.id 
+                        ? { ...member, name, avatar, email, dateOfBirth } 
+                        : member
                 ),
                 latestMessage: hasLatestMessageFromUser
                     ? { ...chat.latestMessage, user: { ...chat.latestMessage.user, ...updatedUser} }
@@ -93,10 +97,20 @@ export function ChatProvider({ children }) {
     }, [])
 
     const updateMemberInMessages = useCallback((updatedUser) => {
+        const { name, avatar, email, dateOfBirth } = updatedUser
         setCurrentMessages(prev =>
             prev.map(message =>
                 message.user?.id === updatedUser.id
-                    ? { ...message, user: { ...message.user, ...updatedUser } }
+                    ? { 
+                        ...message, 
+                        user: { 
+                            ...message.user, 
+                            name,
+                            avatar,
+                            email,
+                            dateOfBirth,
+                        } 
+                    }
                     : message
             )
         )
@@ -141,7 +155,7 @@ export function ChatProvider({ children }) {
         updateChat(data.chat)
     }, [updateChat])
 
-    useEcho(channelName, "chat.deleted", (data) => {
+    useEcho(channelName, "chat.deleted", (data) => {        
         setChats(prev =>
             prev.filter(chat => chat.id !== data.chat_id)
         )

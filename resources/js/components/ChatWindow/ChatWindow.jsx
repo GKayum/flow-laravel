@@ -24,12 +24,14 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
 
     const messageWord = usePlural(currentMessages.length, ['сообщение', 'сообщения', 'сообщений'])
 
-    const handleSendMessage = useCallback(async (content) => {
+    const handleSendMessage = useCallback(async (formData) => {
         if (!selectedChat) return
 
         try {
             await api.get('/sanctum/csrf-cookie')
-            const response = await api.post(`/api/message/${selectedChat.id}/send`, { content })
+            const response = await api.post(`/api/message/${selectedChat.id}/send`, formData, {
+                headers: {'Content-Type' : 'multipart/form-data'}
+            })
 
             setCurrentMessages(prev => [...prev, response.data])
 

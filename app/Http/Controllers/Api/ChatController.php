@@ -64,6 +64,7 @@ class ChatController extends Controller
             return $newChat->load('users');
         });
 
+        broadcast(new ChatCreated($chat))->toOthers();
 
         return response()->json(
             new ChatResource($chat)
@@ -207,7 +208,9 @@ class ChatController extends Controller
 
         broadcast(new ChatMemberRemoved($chat, $member, $userIds))->toOthers();
 
-        return response()->json(['message' => 'Участник чата удален']);
+        return response()->json([
+            'message' => "Участник {$member->name} удален из чата",
+        ]);
     }
 
     public function changeRole(Request $request, Chat $chat, User $member) {

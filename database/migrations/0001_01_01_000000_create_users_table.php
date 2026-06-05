@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('avatar')->nullable();
             $table->date('date_of_birth')->nullable();
+            $table->boolean('is_private')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

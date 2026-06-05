@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
 import styles from "./MemberItem.module.scss"
-import { ShieldUser } from "lucide-react"
 import { Trash } from "lucide-react"
 import { useAuth } from "../../contexts/AuthContext"
 import ContextMenu from "../UI/ContextMenu/ContextMenu"
@@ -8,6 +7,12 @@ import Avatar from "../UI/Avatar/Avatar"
 import { ShieldMinus } from "lucide-react"
 import { ShieldPlus } from "lucide-react"
 import { useChat } from "../../contexts/ChatContext"
+
+const ROLE_LABELS = {
+    owner: 'владелец',
+    admin: 'админ',
+    member: 'участник',
+}
 
 export default function MemberItem({ member, onDelete, onChangeRole }) {
     const { user } = useAuth()
@@ -58,7 +63,7 @@ export default function MemberItem({ member, onDelete, onChangeRole }) {
             <div className={styles.item__body}>
                 <div className={styles.infoBlock}>
                     <span className={styles.content}>{member.name}</span>
-                    <span className={styles.role}>{member.role}</span>
+                    <span className={styles.role}>{ROLE_LABELS[member.role]}</span>
                 </div>
                 <label className={styles.label}>был недавно</label>
             </div>

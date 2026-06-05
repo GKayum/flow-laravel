@@ -6,6 +6,31 @@
     justify-content: center;
     gap: 10px;
 
+    .titleContainer {
+        position: relative;
+        display: inline-grid;
+        perspective: 1000px;
+        transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transform-style: preserve-3d;
+        cursor: pointer;
+
+        &.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .title {
+            grid-area: 1 / 1 / 2 / 2;
+            text-align: center;
+            backface-visibility: hidden;
+            white-space: nowrap;
+
+            &:last-child {
+                transform: rotateY(180deg);
+                font-family: "Lemon";
+            }
+        }
+    }
+
     .form {
         max-width: 330px;
         width: 100%;

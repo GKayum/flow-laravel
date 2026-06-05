@@ -10,6 +10,7 @@ use App\Http\Resources\MessageResource;
 use App\Models\Chat;
 use App\Models\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class MessageController extends Controller
@@ -26,13 +27,22 @@ class MessageController extends Controller
 
     public function send(Request $request, Chat $chat) {
         $validator = Validator::make($request->all(), [
-            'content' => 'required|string',
+            'content' => 'nullable|string',
+            'image' => 'nullable|mimes:jpg,jpeg,png,gif,webp',
         ]);
 
-        $validated = $validator->validated();
+        if (empty($request->content) && !$request->hasFile('image')) {
+            return response()->json(['message' => 'Сообщение не может быть пустым'], 422);
+        }
 
+        $validated = $validator->validated();
         $validated['chat_id'] = $chat->id;
 
+        if ($request->hasFile('image')) {
+            $path = Storage::disk('public')->putFile('messages', $request->file('image'));
+            $validated['image'] = Storage::url($path);
+        }
+        
         $message = $request->user()->messages()->create($validated);
 
         broadcast(new MessageSent($chat, $message))->toOthers();
@@ -74,6 +84,10 @@ class MessageController extends Controller
 
         broadcast(new MessageDeleted($userIds, $message->id, $message->chat->id, $newLatest))->toOthers();
         
+        if ($message->image) {
+            // $relativePath = Str::replaceFirst('/storage/', '', $message->image);
+            Storage::disk('public')->delete($message->image);
+        }
         $message->delete();
 
         return response()->json([

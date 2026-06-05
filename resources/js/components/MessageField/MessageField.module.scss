@@ -1,4 +1,5 @@
 .messageForm {
+    position: relative;
     display: flex;
     align-items: end;
     gap: 12px;
@@ -46,6 +47,64 @@
         }
     }
 
+    .imagePreviewBlock {
+        position: absolute;
+        z-index: 10;
+        bottom: 100%;
+        left: 50%;
+        transform: translate(-50%);
+        margin-bottom: 1.813rem /* 29px */;
+
+        max-width: 100%;
+        width: auto;
+        max-height: 300px;
+        
+
+        .image {
+            display: block;
+            max-width: 100%;
+            max-height: inherit;
+            width: auto;
+            height: auto;
+            border-radius: 12px;
+            object-fit: contain;
+            background-color: #f0f0f0;
+        }
+
+        .actions {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+
+            display: flex;
+            gap: 8px;
+
+            &__button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                border-radius: 50%;
+                padding: .4rem;
+                cursor: pointer;
+                opacity: .95;
+                transition: opacity .1s ease-in-out;
+
+                &.confirm { background-color: var(--color-purple); }
+                &.cancel { background-color: var(--color-red-1); }
+
+                &:hover { opacity: 1; }
+
+                .icon {
+                    width: 18px;
+                    height: 18px;
+                    stroke-width: 3px;
+                    color: #fff;
+                }
+            }
+        }
+    }
+
     .messageInput {
         flex: 1;
         resize: none;
@@ -89,6 +148,70 @@
 
         &:hover {
             opacity: .95;
+        }
+    }
+
+    .buttonContainer {
+        position: relative;
+
+        .menuDropdown {
+            position: absolute;
+            z-index: 20;
+            right: 0;
+            bottom: 100%;
+            margin-bottom: 1.813rem /* 29px */;
+            width: 13rem;
+            padding: .5rem;
+            background-color: #fff;
+            border: 1px var(--color-grey-3) solid;
+            border-radius: 0.375rem /* 0.375rem = 6px */;
+            box-shadow: var(--shadow-lg);
+            
+            opacity: 0;
+            transform: translateY(8px) scale(0.7);
+            transform-origin: bottom right;
+            transition: opacity 0.1s ease, transform 0.1s ease;
+            pointer-events: none;
+
+            &.visible {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                pointer-events: auto;
+            }
+
+            .menuItem {
+                display: flex;
+                align-items: center;
+                gap: .8rem;
+                
+                width: 100%;
+                border-radius: inherit;
+                padding: .5rem 1rem;
+                transition: all .1s ease-in-out;
+                cursor: pointer;
+
+                &:hover {
+                    background-color: var(--color-grey-3);
+                }
+
+                &:active {
+                    scale: 0.96;
+                }
+
+                .icon {
+                    display: flex;
+                    flex-shrink: 0;
+                    width: 22px;
+                    height: 22px;
+                }
+
+                .text {
+                    font-weight: 600;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap
+                }
+            }
         }
     }
 }

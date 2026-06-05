@@ -62,13 +62,13 @@ export default function ProfileTab({ onTabChange, onClose, showToast }) {
                             <label className={styles.label}>Действие</label>
                         </div>
                     </button>
-                    <button className={`${styles.item} ${styles.buttonDanger}`}>
+                    {/* <button className={`${styles.item} ${styles.buttonDanger}`}>
                         <Trash className={styles.icon} />
                         <div className={styles.item__body}>
                             <span className={styles.content}>Удалить профиль</span>
                             <label className={styles.label}>Действие</label>
                         </div>
-                    </button>
+                    </button> */}
                 </section>
             </div>
         </div>

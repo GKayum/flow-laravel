@@ -58,7 +58,7 @@ export default function SideHeader({ onOpenSidebar, onTabChange }) {
                             </button>
                         </div>
                         <div className={styles.menuDropdown__block}>
-                            <button 
+                            {/* <button 
                                 className={styles.item}
                                 onClick={() => {
                                     onOpenSidebar()
@@ -70,7 +70,7 @@ export default function SideHeader({ onOpenSidebar, onTabChange }) {
                                     <Settings className={styles.img} />
                                 </div>
                                 <span className={styles.item__text}>Настройки</span>
-                            </button>
+                            </button> */}
                             <button 
                                 className={`${styles.item} ${styles.danger}`}
                                 onClick={() => logout()}
