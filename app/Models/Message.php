@@ -13,7 +13,6 @@ class Message extends Model
     protected $fillable = [
         'content',
         'chat_id',
-        'image',
     ];
 
     public function chat() {
@@ -22,6 +21,10 @@ class Message extends Model
 
     public function user() {
         return $this->belongsTo(User::class);
+    }
+
+    public function attachments() {
+        return $this->hasMany(Attachment::class);
     }
 
     protected function createdAtTime(): Attribute

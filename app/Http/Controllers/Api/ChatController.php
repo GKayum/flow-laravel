@@ -168,6 +168,10 @@ class ChatController extends Controller
     }
 
     public function exit(Chat $chat) {
+        if (!$chat->is_group) {
+            return response()->json(['message' => 'Нельзя выйти из личного чата'], 403);
+        }
+
         $userId = Auth::user()->id;
 
         $chat->users()->detach($userId);
@@ -226,7 +230,11 @@ class ChatController extends Controller
             'role' => $validated['role'],
         ]);
 
-        $updatedUser = $chat->users()->where('user_id', $member->id)->first();
+        $chat->load('users');
+
+        broadcast(new ChatUpdated($chat))->toOthers();
+
+        $updatedUser = $chat->users()->firstWhere('user_id', $member->id);
 
         return response()->json([
             'message' => 'Роль участника ' . $updatedUser->name . ' изменен',

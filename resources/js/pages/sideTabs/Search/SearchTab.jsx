@@ -47,6 +47,7 @@ export default function SearchTab({ onClose }) {
     const handleClick = (user) => {
         openPersonalChat(user.id)
         setValue('')
+        setUsers([])
         onClose()
     }
     

@@ -35,13 +35,16 @@ export default memo(function ContextMenu({ x, y, onClose, items  }) {
             }
         }
         const handleEsc = (e) => e.key === 'Escape' && onClose()
+        const handleWheel = () => onClose()
 
         document.addEventListener('mousedown', handleClickOutside)
         document.addEventListener('keydown', handleEsc)
+        document.addEventListener('wheel', handleWheel, { passive: true })
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside)
             document.removeEventListener('keydown', handleEsc)
+            document.removeEventListener('wheel', handleWheel)
         }
     }, [onClose])
     

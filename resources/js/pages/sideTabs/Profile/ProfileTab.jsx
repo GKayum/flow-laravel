@@ -7,6 +7,7 @@ import { Trash } from "lucide-react"
 import { Calendar1 } from "lucide-react"
 import TabHeader from "../../../components/TabHeader/TabHeader"
 import { useCopyToClipboard } from "../../../hooks/useCopyToClipboard"
+import { formatDateOfBirthOnly, formatDateOfBirthWithAge } from "../../../utils/formatDateOfBirth"
 
 export default function ProfileTab({ onTabChange, onClose, showToast }) {
     const { user } = useAuth()
@@ -41,11 +42,11 @@ export default function ProfileTab({ onTabChange, onClose, showToast }) {
                     <button
                         type="button"
                         className={styles.item}
-                        onClick={() => handleCopy(user.dateOfBirth, 'Дата рождения')}
+                        onClick={() => handleCopy(formatDateOfBirthOnly(user.dateOfBirth), 'Дата рождения')}
                     >
                         <Calendar1 className={styles.icon} />
                         <div className={styles.item__body}>
-                            <span className={styles.content}>{user.dateOfBirth || 'Не указан'}</span>
+                            <span className={styles.content}>{formatDateOfBirthWithAge(user.dateOfBirth)}</span>
                             <label className={styles.label}>Дата рождения</label>
                         </div>
                     </button>

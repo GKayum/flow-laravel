@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import styles from './ChatWindow.module.scss'
 import { X } from 'lucide-react'
 import { Loader } from '../UI/Loader/Loader'
@@ -20,27 +20,49 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         messagesLoading,
     } = useChat()
 
+    const [uploadProgress, setUploadProgress] = useState(0)
+    const [submittingChatId, setSubmittingChatId] = useState(null)
+    const activeChatIdRef = useRef(selectedChat?.id)
     const chatDisplay = useChatDisplay(selectedChat)
-
     const messageWord = usePlural(currentMessages.length, ['сообщение', 'сообщения', 'сообщений'])
+
+    useEffect(() => {
+        activeChatIdRef.current = selectedChat?.id
+    }, [selectedChat])
 
     const handleSendMessage = useCallback(async (formData) => {
         if (!selectedChat) return
+        const sendingChatId = selectedChat.id
+        setSubmittingChatId(sendingChatId)
+        setUploadProgress(0)
 
         try {
             await api.get('/sanctum/csrf-cookie')
-            const response = await api.post(`/api/message/${selectedChat.id}/send`, formData, {
-                headers: {'Content-Type' : 'multipart/form-data'}
+            const response = await api.post(`/api/message/${sendingChatId}/send`, formData, {
+                headers: {'Content-Type' : 'multipart/form-data'},
+                onUploadProgress: (progressEvent) => {
+                    if (activeChatIdRef.current === sendingChatId) {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                        setUploadProgress(percentCompleted)
+                    }
+                }
             })
 
-            setCurrentMessages(prev => [...prev, response.data])
+            setCurrentMessages(prev =>
+                activeChatIdRef.current === sendingChatId
+                    ? [...prev, response.data]
+                    : prev
+            )
 
             updateChat({
-                id: selectedChat.id,
+                id: sendingChatId,
                 latestMessage: response.data
             })
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
+        } finally {
+            setSubmittingChatId(null)
+            setUploadProgress(0)
         }
     }, [selectedChat, setCurrentMessages, updateChat])
 
@@ -97,6 +119,8 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         )
     }
 
+    const isCurrentChatSubmitting = submittingChatId === selectedChat.id
+
     return (
         <div className={styles.chat}>
             <header className={styles.chat__header}>
@@ -143,7 +167,12 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
                 )}
             </main>
             <footer className={styles.chat__footer}>
-                <MessageField onSendMessage={handleSendMessage} />
+                <MessageField 
+                    key={selectedChat.id} 
+                    onSendMessage={handleSendMessage}
+                    isSubmitting={isCurrentChatSubmitting}
+                    uploadProgress={isCurrentChatSubmitting ? uploadProgress : 0}
+                />
             </footer>
         </div>
     )

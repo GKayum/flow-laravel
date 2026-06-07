@@ -53,7 +53,10 @@ export function ChatProvider({ children }) {
 
         api.get(`/api/message/${selectedChatId}/list`)
             .then(response => {
-                if (isCurrentRequest) setCurrentMessages(response.data)
+                if (isCurrentRequest) {
+                    setCurrentMessages(response.data)
+                    console.log(response.data);
+                }
             })
             .catch(error => console.error('Messages load error:', error))
             .finally(() => {

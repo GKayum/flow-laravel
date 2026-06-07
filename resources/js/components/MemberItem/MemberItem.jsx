@@ -63,7 +63,10 @@ export default function MemberItem({ member, onDelete, onChangeRole }) {
             <div className={styles.item__body}>
                 <div className={styles.infoBlock}>
                     <span className={styles.content}>{member.name}</span>
-                    <span className={styles.role}>{ROLE_LABELS[member.role]}</span>
+                    <span className={styles.role}>
+                        {member.id === user.id ? '(вы) ' : ''}
+                        {ROLE_LABELS[member.role]}
+                    </span>
                 </div>
                 <label className={styles.label}>был недавно</label>
             </div>

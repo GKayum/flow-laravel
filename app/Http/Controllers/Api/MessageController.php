@@ -6,6 +6,7 @@ use App\Events\Message\MessageDeleted;
 use App\Events\Message\MessageSent;
 use App\Events\Message\MessageUpdated;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SendMessageRequest;
 use App\Http\Resources\MessageResource;
 use App\Models\Chat;
 use App\Models\Message;
@@ -16,40 +17,60 @@ use Illuminate\Support\Facades\Validator;
 class MessageController extends Controller
 {
     public function list(Chat $chat) {
-        $messages = $chat->messages()->orderBy('created_at')->get();
-
-        $messages->load('user');
+        $messages = $chat->messages()
+            ->with(['user', 'attachments'])
+            ->orderBy('created_at')
+            ->get();
 
         return response()->json(
             MessageResource::collection($messages)
         );
     }
 
-    public function send(Request $request, Chat $chat) {
-        $validator = Validator::make($request->all(), [
-            'content' => 'nullable|string',
-            'image' => 'nullable|mimes:jpg,jpeg,png,gif,webp',
+    public function send(SendMessageRequest $request, Chat $chat) {
+        $request->validated();
+
+        // ...Проверить...
+        // if (empty($request->content) && !$request->hasFile('files')) {
+        //     return response()->json(['message' => 'Сообщение не может быть пустым'], 422);
+        // }
+
+        $message = $request->user()->messages()->create([
+            'chat_id' => $chat->id,
+            'content' => $request->input('content'),
         ]);
 
-        if (empty($request->content) && !$request->hasFile('image')) {
-            return response()->json(['message' => 'Сообщение не может быть пустым'], 422);
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $mime = $file->getMimeType();
+
+                $type = match (true) {
+                    str_starts_with($mime, 'image/') => 'image',
+                    str_starts_with($mime, 'video/') => 'video',
+                    default => 'file',
+                };
+
+                $directory = "chats/{$chat->id}/messages/{$message->id}/{$type}";
+
+                $path = Storage::disk('public')->putFile($directory, $file);
+
+                $message->attachments()->create([
+                    'path' => Storage::url($path),
+                    'disk' => 'public',
+                    'type' => $type,
+                    'name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                    'mime_type' => $mime,
+                ]);
+            }
         }
 
-        $validated = $validator->validated();
-        $validated['chat_id'] = $chat->id;
-
-        if ($request->hasFile('image')) {
-            $path = Storage::disk('public')->putFile('messages', $request->file('image'));
-            $validated['image'] = Storage::url($path);
-        }
+        $message->load(['user', 'attachments']);
         
-        $message = $request->user()->messages()->create($validated);
-
         broadcast(new MessageSent($chat, $message))->toOthers();
 
-        $message->load('user');
 
-        return response()->json(new MessageResource($message));
+        return response()->json(new MessageResource($message), 201);
     }
 
     public function update(Request $request, Message $message) {
@@ -66,6 +87,8 @@ class MessageController extends Controller
         $latestMessage = $message->chat->messages()->latest()->first();
         $isLatest = $latestMessage && $latestMessage->id === $message->id;
 
+        $message->load(['user', 'attachments']);
+
         broadcast(new MessageUpdated($message, $isLatest))->toOthers();
 
         return response()->json(
@@ -74,6 +97,14 @@ class MessageController extends Controller
     }
 
     public function delete(Message $message) {
+        $chatId = $message->chat_id;
+
+        if ($message->attachments()->exists()) {
+            $firstAttachment = $message->attachments()->first();
+
+            $messageFolder = dirname(dirname($firstAttachment->path));
+            Storage::disk($firstAttachment->disk)->deleteDirectory($messageFolder);
+        }
 
         $userIds = $message->chat->users()->pluck('users.id')->toArray();
 
@@ -82,13 +113,9 @@ class MessageController extends Controller
             ->latest()
             ->first();
 
-        broadcast(new MessageDeleted($userIds, $message->id, $message->chat->id, $newLatest))->toOthers();
-        
-        if ($message->image) {
-            // $relativePath = Str::replaceFirst('/storage/', '', $message->image);
-            Storage::disk('public')->delete($message->image);
-        }
         $message->delete();
+
+        broadcast(new MessageDeleted($userIds, $message->id, $chatId, $newLatest))->toOthers();
 
         return response()->json([
             'message' => 'Сообщение успешно удалено'

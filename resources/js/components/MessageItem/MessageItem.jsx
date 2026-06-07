@@ -9,6 +9,8 @@ import { Pencil } from "lucide-react"
 import { Undo2 } from "lucide-react"
 import { Copy } from "lucide-react"
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard"
+import { FileText } from "lucide-react"
+import { formatBytes } from "../../utils/formatBytes"
 
 export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, isEditing, onStartEdit, onCancelEdit }) {
     const [contextMenu, setContextMenu] = useState(null)
@@ -116,9 +118,36 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, 
                         </div>
                     ) : (
                         <>
-                        {message.image && (
-                            <div className={styles.imageWrapper}>
-                                <img src={message.image} className={styles.messageImage} />
+                        {message.attachments?.length > 0 && (
+                            <div className={styles.attachmentsContainer}>
+                                {message.attachments.map(att => {
+                                    if (att.type === 'image') {
+                                        return (
+                                            <div key={att.id} className={styles.imageWrapper}>
+                                                <img src={att.path} alt={att.name} className={styles.messageImage} loading="lazy" />
+                                            </div>
+                                        )
+                                    }
+                                    if (att.type === 'video') {
+                                        return (
+                                            <div key={att.id} className={styles.videoWrapper}>
+                                                <video controls preload="metadata" className={styles.messageVideo}>
+                                                    <source src={att.path} type={att.mime_type || 'video/mp4'} />
+                                                    Ваш браузер не поддерживает видео.
+                                                </video>
+                                            </div>
+                                        )
+                                    }
+                                    return (
+                                        <a key={att.id} href={att.path} rel="noopener noreferrer" className={styles.fileAttachmentLink} download={att.name}>
+                                            <FileText className={styles.icon} />
+                                            <div className={styles.fileMeta}>
+                                                <span className={styles.fileName}>{att.name}</span>
+                                                <span className={styles.fileSize}>{formatBytes(att.size)}</span>
+                                            </div>
+                                        </a>
+                                    )
+                                })}
                             </div>
                         )}
                         <div className={styles.textContent}>

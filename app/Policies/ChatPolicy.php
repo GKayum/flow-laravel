@@ -76,6 +76,10 @@ class ChatPolicy
 
     public function changeRole(User $user, Chat $chat): Response
     {
+        if (!$chat->is_group) {
+            return Response::deny('В приватном чате нельзя изменять роли');
+        }
+
         return $chat->users()
             ->where('user_id', $user->id)
             ->wherePivot('role', 'owner')
@@ -86,6 +90,10 @@ class ChatPolicy
 
     public function addMember(User $user, Chat $chat): Response
     {
+        if (!$chat->is_group) {
+            return Response::deny('Нельзя добавлять участников в приватный чат');
+        }
+
         return $chat->users()
             ->where('user_id', $user->id)
             ->wherePivotIn('role', ['owner', 'admin']) 
@@ -96,6 +104,10 @@ class ChatPolicy
 
     public function removeMember(User $user, Chat $chat, User $member): Response
     {
+        if (!$chat->is_group) {
+            return Response::deny('Нельзя удалять участников из приватного чата');
+        }
+
         $currentUserRole = $chat->users()
             ->where('user_id', $user->id)
             ->first()?->pivot?->role;
