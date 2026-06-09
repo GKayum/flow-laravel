@@ -18,6 +18,7 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         setCurrentMessages,
         currentMessages,
         messagesLoading,
+        markChatAsRead,
     } = useChat()
 
     const [uploadProgress, setUploadProgress] = useState(0)
@@ -29,6 +30,12 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
     useEffect(() => {
         activeChatIdRef.current = selectedChat?.id
     }, [selectedChat])
+
+    useEffect(() => {
+        if (selectedChat) {
+            markChatAsRead(selectedChat.id)
+        }
+    }, [selectedChat, currentMessages, markChatAsRead]) // Проверить без currentMessages
 
     const handleSendMessage = useCallback(async (formData) => {
         if (!selectedChat) return

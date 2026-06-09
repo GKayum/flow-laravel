@@ -56,6 +56,12 @@ export default function ChatItem({ chat, onDelete, onExit }) {
                 <div className={styles.messageBlock}>
                     {chat?.latestMessage && <span className={styles.name}>{`${chat.latestMessage.user.name}:\u00A0`}</span>}
                     <span className={styles.message}>{chat.latestMessage?.content ?? 'Нет сообщений'}</span>
+
+                    {chat.unread_count > 0 && (
+                        <span className={styles.unreadBadge}>
+                            {chat.unread_count}
+                        </span>
+                    )}
                 </div>
             </div>
         </button>

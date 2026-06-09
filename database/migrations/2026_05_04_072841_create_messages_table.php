@@ -18,7 +18,6 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
             $table->foreignIdFor(Chat::class)->constrained()->onDelete('cascade');
             $table->text('content')->nullable();
-            $table->string('image')->nullable();
             $table->timestamps();
         });
     }

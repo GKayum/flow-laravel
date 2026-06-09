@@ -30,7 +30,7 @@ class MessageController extends Controller
     public function send(SendMessageRequest $request, Chat $chat) {
         $request->validated();
 
-        // ...Проверить...
+        // Проверить, нужно ли применять это условие
         // if (empty($request->content) && !$request->hasFile('files')) {
         //     return response()->json(['message' => 'Сообщение не может быть пустым'], 422);
         // }

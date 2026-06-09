@@ -26,7 +26,19 @@ class Chat extends Model
     public function users() {
         return $this->belongsToMany(User::class, 'chat_members')
             ->using(ChatMember::class)
-            ->withPivot(['role'])
+            ->withPivot(['role', 'last_read_message_id'])
             ->withTimestamps();
+    }
+
+    public function unreadCountFor(User|int $user) {
+        $userId = $user instanceof User ? $user->id : $user;
+
+        $lastReadId = $this->users()
+            ->where('user_id', $userId)
+            ->first()?->pivot->last_read_message_id ?? 0;
+
+        return $this->messages()
+            ->where('id', '>', $lastReadId)
+            ->count();
     }
 }

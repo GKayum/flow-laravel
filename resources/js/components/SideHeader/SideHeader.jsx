@@ -58,19 +58,6 @@ export default function SideHeader({ onOpenSidebar, onTabChange }) {
                             </button>
                         </div>
                         <div className={styles.menuDropdown__block}>
-                            {/* <button 
-                                className={styles.item}
-                                onClick={() => {
-                                    onOpenSidebar()
-                                    setDropdownOpen(false)
-                                    onTabChange('settings')
-                                }}
-                            >
-                                <div className={styles.imgContainer}>
-                                    <Settings className={styles.img} />
-                                </div>
-                                <span className={styles.item__text}>Настройки</span>
-                            </button> */}
                             <button 
                                 className={`${styles.item} ${styles.danger}`}
                                 onClick={() => logout()}
@@ -88,3 +75,17 @@ export default function SideHeader({ onOpenSidebar, onTabChange }) {
         </div>
     )
 }
+
+{/* <button 
+    className={styles.item}
+    onClick={() => {
+        onOpenSidebar()
+        setDropdownOpen(false)
+        onTabChange('settings')
+    }}
+>
+    <div className={styles.imgContainer}>
+        <Settings className={styles.img} />
+    </div>
+    <span className={styles.item__text}>Настройки</span>
+</button> */}

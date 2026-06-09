@@ -153,6 +153,9 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, 
                         <div className={styles.textContent}>
                             {message.content && <span className={styles.message}>{message.content}</span>}
                             <span className={styles.time}>{message.time}</span>
+                            {new Date(message.updated_at).getTime() > new Date(message.created_at).getTime() && (
+                                <span className={styles.editedText}>изменено</span>
+                            )}
                         </div>
                         </>
                     )}

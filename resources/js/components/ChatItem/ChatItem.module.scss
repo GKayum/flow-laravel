@@ -16,7 +16,6 @@
     }
 
     &.selected {
-        // background-color: var(--color-black-2);
         background-color: var(--color-purple);
 
         .button__body {
@@ -29,6 +28,11 @@
             .message {
                 color: #fff;
             }
+        }
+
+        .unreadBadge {
+            background-color: #fff;
+            color: var(--color-purple);
         }
     }
     
@@ -63,16 +67,43 @@
 
     .messageBlock {
         display: flex;
-        justify-content: start;
+        justify-content: space-between;
+        align-items: center;
+        // gap: 8px;
+        min-width: 0;
 
         white-space: nowrap;
         overflow: hidden;
         
+        .name {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
         .message {
             color: var(--color-grey-1);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-align: left;
+            flex-grow: 1;
+        }
+
+        .unreadBadge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background-color: var(--color-purple-2);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border-radius: 10px;
+            user-select: none;
+            line-height: 1;
         }
     }
     

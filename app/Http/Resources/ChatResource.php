@@ -20,7 +20,9 @@ class ChatResource extends JsonResource
             'avatar' => $this->avatar,
             'is_group' => $this->is_group,
             'members' => UserResource::collection($this->whenLoaded('users')),
-            'latestMessage' => MessageResource::make($this->whenLoaded('latestMessage'))
+            'latestMessage' => MessageResource::make($this->whenLoaded('latestMessage')),
+            'unread_count' => $request->user() ? $this->unreadCountFor($request->user()->id) : 0,
+            // 'unread_count' => $this->unreadCountFor($request->user()->id),
         ];
     }
 }

@@ -177,7 +177,7 @@ export default function MessageField({ onSendMessage, isSubmitting = false, uplo
     return (
         <form className={styles.messageForm} onSubmit={handleSubmit}>
 
-            {submitting && hasFileField && progress > 0 && (
+            {submitting && progress > 0 && (
                 <div className={styles.uploadProgressBarBlock}>
                     <div
                         className={styles.progressBarLine}
@@ -279,7 +279,7 @@ export default function MessageField({ onSendMessage, isSubmitting = false, uplo
                 </div>
             </div>
 
-            <button type="submit" className={styles.messageSubmit} disabled={submitting}>
+            <button type="submit" className={styles.messageSubmit} disabled={submitting && hasFileField}>
                 {submitting && hasFileField ? (
                     <span className={styles.submitProgressText}>{uploadProgress}%</span>
                 ) : (

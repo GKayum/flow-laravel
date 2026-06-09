@@ -31,6 +31,18 @@ export function ChatProvider({ children }) {
 
     }, [])
 
+    const markChatAsRead = useCallback(async (chatId) => {
+        try {
+            await api.post(`/api/chat/${chatId}/read`)
+
+            setChats(prev => prev.map(chat =>
+                chat.id === chatId ? { ...chat, unread_count: 0 } : chat
+            ))
+        } catch (error) {
+            console.error('Ошибка при markChatAsRead:', error)
+        }
+    }, [])
+
     useEffect(() => {
         api.get('/api/chat/list')
             .then(response => {
@@ -122,13 +134,26 @@ export function ChatProvider({ children }) {
     const channelName = user?.id ? `user.${user.id}` : null
 
     useEcho(channelName, "message.sent", (data) => {
-        updateChat({ id: data.chat_id, latestMessage: data.message })
         showBrowserNotification(data.message)
 
         if (data.chat_id === selectedChatId) {
             setCurrentMessages(prev => [...prev, data.message])
+
+            markChatAsRead(data.chat_id)
         }
-    }, [selectedChatId, updateChat, showBrowserNotification])
+
+        setChats(prev => prev.map(chat => {
+            if (chat.id === data.chat_id) {
+                const isCurrentActive = selectedChatId === data.chat_id
+                return {
+                    ...chat,
+                    latestMessage: data.message,
+                    unread_count: isCurrentActive ? 0 : (chat.unread_count ?? 0) + 1
+                }
+            }
+            return chat
+        }))
+    }, [selectedChatId, markChatAsRead, showBrowserNotification])
 
     useEcho(channelName, "message.updated", (data) => {
         if (data.chat_id === selectedChatId) {
@@ -223,8 +248,16 @@ export function ChatProvider({ children }) {
 
     const closeChat = useCallback(() => setSelectedChatId(null), [])
 
+    const sortedChats = useMemo(() => {
+        return [...chats].sort((a, b) => {
+            const timeA = a.latestMessage?.created_at ? new Date(a.latestMessage.created_at).getTime() : 0
+            const timeB = b.latestMessage?.created_at ? new Date(b.latestMessage.created_at).getTime() : 0
+            return timeB - timeA
+        })
+    }, [chats])
+
     const contextValue = useMemo(() => ({
-        chats,
+        chats: sortedChats,
         chatsLoading,
         selectedChat,
         selectedChatId,
@@ -239,6 +272,7 @@ export function ChatProvider({ children }) {
         setMessagesLoading,
         updateMemberInMessages,
         updateMemberInChats,
+        markChatAsRead,
     }), [
         chats, 
         chatsLoading, 

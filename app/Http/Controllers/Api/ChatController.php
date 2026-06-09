@@ -241,4 +241,20 @@ class ChatController extends Controller
             'user' => new UserResource($updatedUser)
         ]);
     }
+
+    public function markAsRead(Chat $chat, Request $request) {
+        $userId = $request->user()->id;
+        $latestMessage = $chat->messages()->latest()->first();
+
+        if ($latestMessage) {
+            $chat->users()->updateExistingPivot($userId, [
+                'last_read_message_id' => $latestMessage->id,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'last_read_message_id' => $latestMessage?->id,
+        ]);
+    }
 }
