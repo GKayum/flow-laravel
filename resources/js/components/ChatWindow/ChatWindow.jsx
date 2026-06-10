@@ -12,7 +12,8 @@ import { useChatDisplay } from '../../hooks/useChatDisplay'
 
 export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose }) {
     const { 
-        selectedChat, 
+        selectedChat,
+        selectedChatId,
         onCloseChat, 
         updateChat,
         setCurrentMessages,
@@ -21,7 +22,6 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         markChatAsRead,
     } = useChat()
 
-    const [uploadProgress, setUploadProgress] = useState(0)
     const [submittingChatId, setSubmittingChatId] = useState(null)
     const activeChatIdRef = useRef(selectedChat?.id)
     const chatDisplay = useChatDisplay(selectedChat)
@@ -32,28 +32,19 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
     }, [selectedChat])
 
     useEffect(() => {
-        if (selectedChat) {
-            markChatAsRead(selectedChat.id)
+        if (selectedChatId) {
+            markChatAsRead(selectedChatId)
         }
-    }, [selectedChat, currentMessages, markChatAsRead]) // Проверить без currentMessages
+    }, [selectedChatId, markChatAsRead])
 
-    const handleSendMessage = useCallback(async (formData) => {
+    const handleSendMessage = useCallback(async (payload) => {
         if (!selectedChat) return
         const sendingChatId = selectedChat.id
         setSubmittingChatId(sendingChatId)
-        setUploadProgress(0)
 
         try {
-            await api.get('/sanctum/csrf-cookie')
-            const response = await api.post(`/api/message/${sendingChatId}/send`, formData, {
-                headers: {'Content-Type' : 'multipart/form-data'},
-                onUploadProgress: (progressEvent) => {
-                    if (activeChatIdRef.current === sendingChatId) {
-                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-                        setUploadProgress(percentCompleted)
-                    }
-                }
-            })
+            // await api.get('/sanctum/csrf-cookie')
+            const response = await api.post(`/api/message/${sendingChatId}/send`, payload)
 
             setCurrentMessages(prev =>
                 activeChatIdRef.current === sendingChatId
@@ -69,7 +60,6 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         } finally {
             setSubmittingChatId(null)
-            setUploadProgress(0)
         }
     }, [selectedChat, setCurrentMessages, updateChat])
 
@@ -178,7 +168,6 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
                     key={selectedChat.id} 
                     onSendMessage={handleSendMessage}
                     isSubmitting={isCurrentChatSubmitting}
-                    uploadProgress={isCurrentChatSubmitting ? uploadProgress : 0}
                 />
             </footer>
         </div>

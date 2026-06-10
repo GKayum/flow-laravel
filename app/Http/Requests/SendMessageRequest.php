@@ -24,17 +24,14 @@ class SendMessageRequest extends FormRequest
     {
         return [
             'content' => 'nullable|string',
-            'files' => 'nullable|array',
-            'files.*' => [
-                'file',
-                'mimetypes:image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip,application/x-rar-compressed,text/plain'
-            ],
+            'attachment_ids' => 'nullable|array',
+            'attachment_ids.*' => 'integer|exists:attachments,id',
         ];
     }
 
     protected function prepareForValidation()
     {
-        if ($this->hasFile('files') && empty($this->input('content'))) {
+        if (!empty($this->input('attachment_ids')) && empty($this->input('content'))) {
             $this->merge(['content' => null]);
         }
     }

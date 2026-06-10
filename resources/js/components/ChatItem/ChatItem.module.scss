@@ -27,6 +27,10 @@
 
             .message {
                 color: #fff;
+
+                .attachmentLabel {
+                    color: #fff;
+                }
             }
         }
 
@@ -69,7 +73,6 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        // gap: 8px;
         min-width: 0;
 
         white-space: nowrap;
@@ -81,12 +84,29 @@
         }
 
         .message {
+            display: flex;
+            align-items: end;
+
             color: var(--color-grey-1);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             text-align: left;
             flex-grow: 1;
+
+            .attachmentLabel {
+                display: inline-flex;
+                align-items: end;
+                gap: 5px;
+                vertical-align: middle;
+                color: var(--color-purple);
+
+                svg {
+                    width: 20px;
+                    height: 20px;
+                    // color: var(--color-purple);
+                }
+            }
         }
 
         .unreadBadge {

@@ -4,24 +4,6 @@
     align-items: end;
     gap: 12px;
 
-    .uploadProgressBarBlock {
-        position: absolute;
-        top: -12px;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background-color: var(--color-grey-3);
-        border-radius: 2px;
-        overflow: hidden;
-        z-index: 30;
-
-        .progressBarLine {
-            height: 100%;
-            background-color: var(--color-purple);
-            transition: width .2s ease-out;
-        }
-    }
-
     .btn {
         margin-bottom: 5px;
         padding: 5px;
@@ -77,24 +59,6 @@
         background-color: #fff;
         border: 1px solid var(--color-grey-4);
 
-        .filesPreviewOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.85);
-            z-index: 15;
-            @include flex-center;
-            border-radius: 12px;
-
-            span {
-                font-weight: 600;
-                font-size: 14px;
-                color: var(--color-purple);
-            }
-        }
-
         .filesPreviewContainer {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
@@ -122,6 +86,36 @@
     
                 .previewVideo {
                     pointer-events: none;
+                }
+
+                .previewOverlay {
+                    position: absolute;
+                    inset: 0;
+                    background-color: rgba(0, 0, 0, 0.45);
+                    z-index: 5;
+                    @include flex-center;
+
+                    span {
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: #fff;
+                    }
+                }
+
+                .previewError {
+                    position: absolute;
+                    inset: 0;
+                    background-color: rgba(220, 53, 69, 0.75);
+                    z-index: 5;
+                    @include flex-center;
+                    padding: 8px;
+                    text-align: center;
+
+                    span {
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #fff;
+                    }
                 }
             }
     
@@ -157,6 +151,14 @@
                     overflow: hidden;
                     text-overflow: ellipsis;
                     word-break: break-all;
+                }
+
+                .fileProgress {
+                    margin-left: auto;
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: var(--color-purple);
+                    flex-shrink: 0;
                 }
             }
     

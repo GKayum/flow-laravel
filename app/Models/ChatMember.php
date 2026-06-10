@@ -12,6 +12,10 @@ class ChatMember extends Pivot
 
     protected $fillable = [
         'role',
-        'last_read_message_id',
+        'last_read_at',
+    ];
+
+    protected $casts = [
+        'last_read_at' => 'datetime',
     ];
 }

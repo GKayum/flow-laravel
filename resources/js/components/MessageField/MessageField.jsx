@@ -8,27 +8,25 @@ import Picker from '@emoji-mart/react'
 import { X } from "lucide-react"
 import { FileImage } from "lucide-react"
 import { FileText } from "lucide-react"
+import { deleteAttachment, uploadAttachment } from "../../services/api"
 
-export default function MessageField({ onSendMessage, isSubmitting = false, uploadProgress = 0 }) {
+export default function MessageField({ onSendMessage, isSubmitting = false }) {
     const [message, setMessage] = useState('')
-    const [files, setFiles] = useState([])
+    const [attachments, setAttachments] = useState([])
     const [showPicker, setShowPicker] = useState(false)
     const [dropdownOpen, setDropdownOpen] = useState(false)
     const [fileAccept, setFileAccept] = useState('*')
-    const [hasFileField, setHasFileField] = useState(false)
     const textareaRef = useRef(null)
     const fileInputRef = useRef(null)
 
-    const submitting = isSubmitting
-    const progress = uploadProgress
-
-    const generateFileId = () => `file_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+    const genId = () => `att_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
     const handleFileSelect = (e) => {
         const selectedFiles = Array.from(e.target.files)
-        if (selectedFiles.length === 0) return
+        if (!selectedFiles.length) return
 
-        const newFiles = selectedFiles.map(file => {
+        selectedFiles.forEach(file => {
+            const localId = genId()
             const mime = file.type
             let type = 'file'
             if (mime.startsWith('image/')) type = 'image'
@@ -38,33 +36,70 @@ export default function MessageField({ onSendMessage, isSubmitting = false, uplo
                 ? URL.createObjectURL(file)
                 : null
 
-            return {
-                id: generateFileId(),
-                file,
-                preview,
-                type,
-            }
+            const att = { localId, id: null, file, name: file.name, type, preview, url: null, uploading: true, progress: 0, error: null }
+            setAttachments(prev => [...prev, att])
+
+            uploadAttachment(file, (percent) => {
+                setAttachments(prev => prev.map(a => a.localId === localId ? {
+                    ...a, progress: percent} : a))
+            })
+            .then(res => {
+                setAttachments(prev => prev.map(a =>
+                    a.localId === localId
+                        ? { ...a, id: res.data.id, url: res.data.url, uploading: false, progress: 100 }
+                        : a
+                ))
+            })
+            .catch(err => {
+                console.error(err)
+                setAttachments(prev => prev.map(a =>
+                    a.localId === localId ? { ...a, uploading: false, error: 'Ошибка при загрузке' } : a
+                ))
+            })
         })
 
-        setFiles(prev => [...prev, ...newFiles])
         e.target.value = ''
     }
 
-    const removeFile = (fileId) => {
-        setFiles(prev => {
-            const file = prev.find(f => f.id === fileId)
-            if (file?.preview) URL.revokeObjectURL(file.preview)
-            return prev.filter(f => f.id !== fileId)
-        })
+    const removeAttachment = (localId) => {
+        const att = attachments.find(a => a.localId === localId)
+        if (!att) return
+
+        if (att.id && !att.uploading) {
+            deleteAttachment(att.id).catch(console.error)
+        }
+        if (att.preview) URL.revokeObjectURL(att.preview)
+
+        setAttachments(prev => prev.filter(a => a.localId !== localId))
     }
 
-    useEffect(() => {
-        return () => {
-            files.forEach(f => {
-                if (f.preview) URL.revokeObjectURL(f.preview)
-            })
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+
+        const uploadingCount = attachments.filter(a => a.uploading).length
+        if (uploadingCount > 0) return
+
+        if (!message.trim() && attachments.length === 0) return
+        if (isSubmitting) return
+
+        const attachmentIds = attachments.filter(a => a.id && !a.error).map(a => a.id)
+
+        const payload = {
+            content: message.trim() || null,
+            ...(attachmentIds.length ? { attachment_ids: attachmentIds } : {})
         }
-    }, [files])
+
+        const previews = attachments.map(a => a.preview).filter(Boolean)
+        setMessage('')
+        setAttachments([])
+
+        try {
+            await onSendMessage(payload)
+            previews.forEach(URL.revokeObjectURL)
+        } catch (error) {
+            console.error('Ошибка отправки:', error)
+        }
+    }
 
     useEffect(() => {
         const textarea = textareaRef.current
@@ -78,16 +113,9 @@ export default function MessageField({ onSendMessage, isSubmitting = false, uplo
         const textarea = textareaRef.current
         if (!textarea) return
 
-        const start = textarea.selectionStart
-        const end = textarea.selectionEnd
-        const currentValue = textarea.value
+        const start = textarea.selectionStart, end = textarea.selectionEnd
 
-        const newValue =
-            currentValue.substring(0, start) +
-            emoji.native +
-            currentValue.substring(end)
-        
-        setMessage(newValue)
+        setMessage(prev => prev.substring(0, start) + emoji.native + prev.substring(end))
         textarea.focus()
     }, [])
 
@@ -104,87 +132,52 @@ export default function MessageField({ onSendMessage, isSubmitting = false, uplo
         }
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        if (!message.trim() && files.length === 0) return
-        if (submitting) return
-
-        const formData = new FormData()
-        if (message.trim()) formData.append('content', message)
-        files.forEach(f => formData.append('files[]', f.file))
-
-        setHasFileField(files.length > 0)
-
-        const savedFiles = [...files]
-        setMessage('')
-        setFiles([])
-
-        try {
-            await onSendMessage(formData)
-            savedFiles.forEach(f => { if (f.preview) URL.revokeObjectURL(f.preview) })
-        } catch (error) {
-            console.error('Ошибка при отправке файлов:', error)
-            setMessage(formData.get('content') || '')
-            setFiles(savedFiles)
-        } finally {
-            setHasFileField(false)
-        }
-    }
-
     const openFilePicker = (acceptType) => {
         setFileAccept(acceptType)
         setDropdownOpen(false)
-        setTimeout(() => {
-            fileInputRef.current?.click()
-        }, 0);
+        setTimeout(() => fileInputRef.current?.click(), 0);
     }
 
-    const renderFilePreview = (file) => {
-        if (file.type === 'image' && file.preview) {
+    const renderPreview = (att) => {
+        if (att.type === 'image' && att.preview) {
             return (
                 <div className={styles.previewItem}>
-                    <img src={file.preview} alt={file.file.name} className={styles.previewImage} />
-                    <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => removeFile(file.id)}>
-                        <X className={styles.icon} />
-                    </button>
-                </div>
-            )
-        } else if (file.type === 'video') {
-            return (
-                <div className={styles.previewItem}>
-                    <video className={styles.previewVideo} controls>
-                        <source src={file.preview || ''} type={file.file.type} />
-                        Ваш браузер не поддерживает видео.
-                    </video>
-                    <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => removeFile(file.id)}>
-                        <X className={styles.icon} />
-                    </button>
-                </div>
-            )
-        } else {
-            return (
-                <div className={styles.previewItemFile}>
-                    <FileText className={styles.fileIcon} />
-                    <span className={styles.fileName}>{file.file.name}</span>
-                    <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => removeFile(file.id)}>
+                    <img src={att.preview} alt={att.name} className={styles.previewImage} />
+                    {att.uploading && <div className={styles.previewOverlay}><span>{att.progress}%</span></div>}
+                    {att.error && <div className={styles.previewError}><span>{att.error}</span></div>}
+                    <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => removeAttachment(att.localId)}>
                         <X className={styles.icon} />
                     </button>
                 </div>
             )
         }
+        if (att.type === 'video') {
+            return (
+                <div className={styles.previewItem}>
+                    <video className={styles.previewVideo} controls={!att.uploading}>
+                        <source src={att.preview || att.url || ''} type={att.file?.type} />
+                    </video>
+                    {att.uploading && <div className={styles.previewOverlay}><span>{att.progress}%</span></div>}
+                    <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => removeAttachment(att.localId)}>
+                        <X className={styles.icon} />
+                    </button>
+                </div>
+            )
+        }
+        return (
+            <div className={styles.previewItemFile}>
+                <FileText className={styles.fileIcon} />
+                <span className={styles.fileName}>{att.name}</span>
+                {att.uploading && <span className={styles.fileProgress}>{att.progress}%</span>}
+                <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => removeAttachment(att.localId)}>
+                    <X className={styles.icon} />
+                </button>
+            </div>
+        )
     }
 
     return (
         <form className={styles.messageForm} onSubmit={handleSubmit}>
-
-            {submitting && progress > 0 && (
-                <div className={styles.uploadProgressBarBlock}>
-                    <div
-                        className={styles.progressBarLine}
-                        style={{ width: `${uploadProgress}%` }}
-                    />
-                </div>
-            )}
 
             <div className={styles.pickerContainer}>
                 <button 
@@ -210,21 +203,15 @@ export default function MessageField({ onSendMessage, isSubmitting = false, uplo
                 </div>
             </div>
 
-            {(files.length > 0 || (submitting && hasFileField)) && (
+            {attachments.length > 0 && (
                 <div className={styles.previewWrapper}>
                     <div className={styles.filesPreviewContainer}>
-                        {files.map(file => (
-                            <React.Fragment key={file.id}>
-                                {renderFilePreview(file)}
+                        {attachments.map(att => (
+                            <React.Fragment key={att.localId}>
+                                {renderPreview(att)}
                             </React.Fragment>
                         ))}
                     </div>
-
-                    {submitting && hasFileField && (
-                        <div className={styles.filesPreviewOverlay}>
-                            <span>Загрузка... {uploadProgress}%</span>
-                        </div>
-                    )}
                 </div>
             )}
 
@@ -279,12 +266,8 @@ export default function MessageField({ onSendMessage, isSubmitting = false, uplo
                 </div>
             </div>
 
-            <button type="submit" className={styles.messageSubmit} disabled={submitting && hasFileField}>
-                {submitting && hasFileField ? (
-                    <span className={styles.submitProgressText}>{uploadProgress}%</span>
-                ) : (
-                    <SendHorizonal />
-                )}
+            <button type="submit" className={styles.messageSubmit} disabled={isSubmitting || attachments.some(a => a.uploading)}>
+                <SendHorizonal />
             </button>
         </form>
     )

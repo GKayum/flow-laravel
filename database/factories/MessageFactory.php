@@ -23,10 +23,6 @@ class MessageFactory extends Factory
             'chat_id' => Chat::factory(),
             'user_id' => User::factory(),
             'content' => fake()->optional(0.8)->realText(50),
-            // 'image'   => fake()->optional(0.9)->passthrough(
-            //     'https://placekitten.com/' . mt_rand(200, 400) . '/' . mt_rand(200, 400)
-            // ),
-            'image' => null,
             'created_at' => fake()->dateTimeBetween('-1 year', 'now'),
         ];
     }

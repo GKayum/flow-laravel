@@ -19,6 +19,8 @@ return new class extends Migration
             $table->foreignIdFor(Chat::class)->constrained()->onDelete('cascade');
             $table->text('content')->nullable();
             $table->timestamps();
+
+            $table->index(['chat_id', 'created_at']);
         });
     }
 

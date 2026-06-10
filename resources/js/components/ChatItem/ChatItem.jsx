@@ -6,6 +6,36 @@ import styles from './ChatItem.module.scss'
 import { Trash } from 'lucide-react'
 import ContextMenu from '../UI/ContextMenu/ContextMenu'
 import { CircleArrowRight } from 'lucide-react'
+import { Image } from 'lucide-react'
+import { Video } from 'lucide-react'
+import { FileText } from 'lucide-react'
+
+const getAttachmentLabel = (attachments) => {
+    if (!attachments || attachments.length === 0) return 'Нет сообщений'
+
+    const firstType = attachments[0]?.type
+
+    switch (firstType) {
+        case 'video':
+            return (
+                <span className={styles.attachmentLabel}>
+                    <Video /> Видео
+                </span>
+            );
+        case 'image':
+            return (
+                <span className={styles.attachmentLabel}>
+                    <Image /> Изображение
+                </span>
+            );
+        default:
+            return (
+                <span className={styles.attachmentLabel}>
+                    <FileText /> Файл
+                </span>
+            );
+    }
+}
 
 export default function ChatItem({ chat, onDelete, onExit }) {
     const { onSelectChat, selectedChat } = useChat()
@@ -55,7 +85,12 @@ export default function ChatItem({ chat, onDelete, onExit }) {
                 </div>
                 <div className={styles.messageBlock}>
                     {chat?.latestMessage && <span className={styles.name}>{`${chat.latestMessage.user.name}:\u00A0`}</span>}
-                    <span className={styles.message}>{chat.latestMessage?.content ?? 'Нет сообщений'}</span>
+                    {console.log(chat)}
+                    <div className={styles.message}>
+                        {chat.latestMessage
+                            ? chat.latestMessage.content || getAttachmentLabel(chat.latestMessage.attachments)
+                            : 'Нет сообщений'}
+                    </div>
 
                     {chat.unread_count > 0 && (
                         <span className={styles.unreadBadge}>

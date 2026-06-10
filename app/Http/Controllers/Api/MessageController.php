@@ -8,11 +8,14 @@ use App\Events\Message\MessageUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SendMessageRequest;
 use App\Http\Resources\MessageResource;
+use App\Models\Attachment;
 use App\Models\Chat;
 use App\Models\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Str;
 
 class MessageController extends Controller
 {
@@ -28,47 +31,63 @@ class MessageController extends Controller
     }
 
     public function send(SendMessageRequest $request, Chat $chat) {
-        $request->validated();
+        $validated = $request->validated();
+        $attachmentIds = $validated['attachment_ids'] ?? [];
 
         // Проверить, нужно ли применять это условие
         // if (empty($request->content) && !$request->hasFile('files')) {
         //     return response()->json(['message' => 'Сообщение не может быть пустым'], 422);
         // }
 
-        $message = $request->user()->messages()->create([
-            'chat_id' => $chat->id,
-            'content' => $request->input('content'),
-        ]);
+        if (!empty($attachmentIds)) {
+            $attachments = Attachment::whereIn('id', $attachmentIds)
+                ->where('user_id', $request->user()->id)
+                ->whereNull('message_id')
+                ->get();
 
-        if ($request->hasFile('files')) {
-            foreach ($request->file('files') as $file) {
-                $mime = $file->getMimeType();
-
-                $type = match (true) {
-                    str_starts_with($mime, 'image/') => 'image',
-                    str_starts_with($mime, 'video/') => 'video',
-                    default => 'file',
-                };
-
-                $directory = "chats/{$chat->id}/messages/{$message->id}/{$type}";
-
-                $path = Storage::disk('public')->putFile($directory, $file);
-
-                $message->attachments()->create([
-                    'path' => Storage::url($path),
-                    'disk' => 'public',
-                    'type' => $type,
-                    'name' => $file->getClientOriginalName(),
-                    'size' => $file->getSize(),
-                    'mime_type' => $mime,
-                ]);
+            if ($attachments->count() !== count($attachmentIds)) {
+                return response()->json([
+                    'message' => 'Некоторые вложения не найдены, уже использованы или не принадлежат вам'
+                ], 422);
             }
         }
+
+        $message = DB::transaction(function () use ($request, $chat, $attachmentIds) {
+            $message = $request->user()->messages()->create([
+                'chat_id' => $chat->id,
+                'content' => $request->input('content'),
+            ]);
+
+            $chat->users()->updateExistingPivot($request->user()->id, [
+                'last_read_at' => $message->created_at,
+            ]);
+
+            if (!empty($attachmentIds)) {
+                $attachments = Attachment::whereIn('id', $attachmentIds)->get();
+
+                foreach ($attachments as $attachment) {
+                    $oldRelativePath = Str::replaceFirst('/storage/', '', $attachment->path);
+                    $extension = pathinfo($oldRelativePath, PATHINFO_EXTENSION);
+                    $newRelativePath = "chats/{$chat->id}/messages/{$message->id}/{$attachment->type}/{$attachment->id}" . ($extension ? ".{$extension}" : '');
+
+                    if (Storage::disk('public')->exists($oldRelativePath)) {
+                        Storage::disk('public')->move($oldRelativePath, $newRelativePath);
+                    }
+
+                    $attachment->update([
+                        'path' => Storage::url($newRelativePath),
+                        'message_id' => $message->id,
+                        'expires_at' => null,
+                    ]);
+                }
+            }
+
+            return $message;
+        });
 
         $message->load(['user', 'attachments']);
         
         broadcast(new MessageSent($chat, $message))->toOthers();
-
 
         return response()->json(new MessageResource($message), 201);
     }
@@ -98,15 +117,14 @@ class MessageController extends Controller
 
     public function delete(Message $message) {
         $chatId = $message->chat_id;
+        $userIds = $message->chat->users()->pluck('users.id')->toArray();
 
-        if ($message->attachments()->exists()) {
-            $firstAttachment = $message->attachments()->first();
-
-            $messageFolder = dirname(dirname($firstAttachment->path));
-            Storage::disk($firstAttachment->disk)->deleteDirectory($messageFolder);
+        foreach ($message->attachments as $attachment) {
+            $relativePath = Str::replaceFirst('/storage/', '', $attachment->path);
+            Storage::disk($attachment->disk)->delete($relativePath);
         }
 
-        $userIds = $message->chat->users()->pluck('users.id')->toArray();
+        Storage::disk('public')->deleteDirectory("chats/{$chatId}/messages/{$message->id}");
 
         $newLatest = $message->chat->messages()
             ->where('id', '!=', $message->id)

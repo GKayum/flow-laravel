@@ -32,6 +32,9 @@ export function ChatProvider({ children }) {
     }, [])
 
     const markChatAsRead = useCallback(async (chatId) => {
+        const chat = chats.find(c => c.id === chatId)
+        if (!chat || chat.unread_count === 0) return
+
         try {
             await api.post(`/api/chat/${chatId}/read`)
 
@@ -41,7 +44,7 @@ export function ChatProvider({ children }) {
         } catch (error) {
             console.error('Ошибка при markChatAsRead:', error)
         }
-    }, [])
+    }, [chats])
 
     useEffect(() => {
         api.get('/api/chat/list')
@@ -138,7 +141,6 @@ export function ChatProvider({ children }) {
 
         if (data.chat_id === selectedChatId) {
             setCurrentMessages(prev => [...prev, data.message])
-
             markChatAsRead(data.chat_id)
         }
 
@@ -167,13 +169,27 @@ export function ChatProvider({ children }) {
     }, [selectedChatId, updateChat])
 
     useEcho(channelName, "message.deleted", (data) => {
-        updateChat({ id: data.chat_id, latestMessage: data.latest_message })
+        setChats(prev => prev.map(chat => {
+            if (chat.id !== data.chat_id) return chat
+
+            // const wasLatest = chat.latestMessage?.id === data.message_id
+
+            return {
+                ...chat,
+                latestMessage: data.latest_message,
+                // unread_count: (wasLatest && chat.unread_count > 0)
+                unread_count: (chat.unread_count > 0)
+                    ? chat.unread_count - 1
+                    : chat.unread_count
+            }
+        }))
+
         if (data.chat_id === selectedChatId) {
             setCurrentMessages(prev =>
                 prev.filter(m => m.id !== data.message_id)
             );
         }
-    }, [selectedChatId, updateChat])
+    }, [selectedChatId])
 
     useEcho(channelName, "chat.created", (data) => {
         setChats(prev => [data.chat, ...prev])

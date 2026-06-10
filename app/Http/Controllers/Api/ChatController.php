@@ -243,18 +243,15 @@ class ChatController extends Controller
     }
 
     public function markAsRead(Chat $chat, Request $request) {
-        $userId = $request->user()->id;
-        $latestMessage = $chat->messages()->latest()->first();
+        $now = now();
 
-        if ($latestMessage) {
-            $chat->users()->updateExistingPivot($userId, [
-                'last_read_message_id' => $latestMessage->id,
-            ]);
-        }
+        $chat->users()->updateExistingPivot($request->user()->id, [
+            'last_read_at' => $now,
+        ]);
 
         return response()->json([
             'success' => true,
-            'last_read_message_id' => $latestMessage?->id,
+            'last_read_at' => $now->toDateTimeString(),
         ]);
     }
 }

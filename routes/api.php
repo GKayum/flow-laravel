@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AttachController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\MessageController;
@@ -39,5 +40,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{chat}/send', [MessageController::class,'send']);
         Route::delete('/{message}/delete', [MessageController::class, 'delete'])->middleware('can:delete,message');
         Route::put('/{message}/update', [MessageController::class, 'update'])->middleware('can:update,message');
+    });
+
+    Route::prefix('/attachment')->group(function () {
+        Route::post('/upload', [AttachController::class, 'upload']);
+        Route::delete('/{attachment}', [AttachController::class, 'destroy']);
     });
 });

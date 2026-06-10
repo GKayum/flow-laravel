@@ -39,4 +39,18 @@ function handlerApiError(error, { setValidationErrors, setError }) {
     }
 }
 
+export const uploadAttachment = (file, onProgress) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/api/attachment/upload', formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (progressEvent) => {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            onProgress?.(percent)
+        }
+    })
+}
+
+export const deleteAttachment = (id) => api.delete(`/api/attachment/${id}`)
+
 export { api, handlerApiError }
