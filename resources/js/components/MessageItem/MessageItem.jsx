@@ -11,6 +11,7 @@ import { Copy } from "lucide-react"
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard"
 import { FileText } from "lucide-react"
 import { formatBytes } from "../../utils/formatBytes"
+import VoicePlayer from "../UI/VoicePlayer/VoicePlayer"
 
 export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, isEditing, onStartEdit, onCancelEdit }) {
     const [contextMenu, setContextMenu] = useState(null)
@@ -121,6 +122,13 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, 
                         {message.attachments?.length > 0 && (
                             <div className={styles.attachmentsContainer}>
                                 {message.attachments.map(att => {
+                                    if (att.type === 'voice') {
+                                        return (
+                                            <div key={att.id} className={styles.voiceWrapper}>
+                                                <VoicePlayer url={att.path} duration={att.duration} />
+                                            </div>
+                                        )
+                                    }
                                     if (att.type === 'image') {
                                         return (
                                             <div key={att.id} className={styles.imageWrapper}>

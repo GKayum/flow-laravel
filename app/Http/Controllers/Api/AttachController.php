@@ -15,11 +15,13 @@ class AttachController extends Controller
         // $request->validated(); // Проверить
 
         $file = $request->file('file');
-        $mime = $file->getMimeType();
+        $clientMime = $file->getClientMimeType();
+        $serverMime = $file->getMimeType();
 
         $type = match (true) {
-            str_starts_with($mime, 'image/') => 'image',
-            str_starts_with($mime, 'video/') => 'video',
+            str_starts_with($clientMime, 'audio/') || str_starts_with($serverMime, 'audio/') => 'voice',
+            str_starts_with($clientMime, 'image/') || str_starts_with($serverMime, 'image/') => 'image',
+            str_starts_with($clientMime, 'video/') || str_starts_with($serverMime, 'video/') => 'video',
             default => 'file',
         };
 
@@ -27,23 +29,25 @@ class AttachController extends Controller
         $path = Storage::disk('public')->putFile($directory, $file);
 
         $attachment = Attachment::create([
-            'user_id' => $request->user()->id,
-            'message_id' => null, // Проверить
-            'path' => Storage::url($path),
-            'disk' => 'public',
-            'type' => $type,
-            'name' => $file->getClientOriginalName(),
-            'size' => $file->getSize(),
-            'mime_type' => $mime,
+            'user_id'    => $request->user()->id,
+            'message_id' => null,
+            'path'       => Storage::url($path),
+            'disk'       => 'public',
+            'type'       => $type,
+            'name'       => $file->getClientOriginalName(),
+            'size'       => $file->getSize(),
+            'mime_type'  => $serverMime,
+            'duration'   => $request->input('duration'),
             'expires_at' => now()->addHours(24),
         ]);
 
         return response()->json([
-            'id' => $attachment->id,
-            'url' => $attachment->path,
-            'type' => $type,
-            'name' => $attachment->name,
-            'size' => $attachment->size,
+            'id'       => $attachment->id,
+            'url'      => $attachment->path,
+            'type'     => $type,
+            'name'     => $attachment->name,
+            'size'     => $attachment->size,
+            'duration' => $attachment->duration,
         ], 201);
     }
 

@@ -231,6 +231,32 @@
         }
     }
 
+    .recordingPlaceholder {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        margin-bottom: 3px;
+        background-color: var(--color-grey-4);
+        border-radius: 8px;
+        user-select: none;
+
+        .recordingDot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ef4444;
+            animation: pulse 1.2s infinite;
+        }
+
+        .recordingLabel,
+        .sendingLabel {
+            color: var(--color-grey-1);
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
     .messageSubmit {
         padding: 10px;
         border-radius: 50%;
@@ -242,17 +268,23 @@
         height: 44px;
         @include flex-center;
 
+        &.recording {
+            & { background-color: var(--color-red-2); }
+
+            color: var(--color-red-1);
+            animation: pulse 1.5s infinite;
+        }
+
         &:hover { opacity: .95; }
         &:disabled {
             background-color: var(--color-grey-2);
             cursor: not-allowed;
         }
+    }
 
-        .submitProgressText {
-            font-size: 12px;
-            font-weight: 700;
-            color: #fff;
-        }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
     }
 
     .buttonContainer {

@@ -39,13 +39,15 @@ function handlerApiError(error, { setValidationErrors, setError }) {
     }
 }
 
-export const uploadAttachment = (file, onProgress) => {
+export const uploadAttachment = (file, onProgress, meta = {}) => {
     const formData = new FormData()
     formData.append('file', file)
+    if (meta.duration) formData.append('duration', meta.duration)
+
     return api.post('/api/attachment/upload', formData, {
         headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (progressEvent) => {
-            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        onUploadProgress: (e) => {
+            const percent = Math.round((e.loaded * 100) / e.total)
             onProgress?.(percent)
         }
     })

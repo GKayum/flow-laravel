@@ -17,6 +17,7 @@ class Attachment extends Model
         'name',
         'size',
         'mime_type',
+        'duration',
         'expires_at',
     ];
 

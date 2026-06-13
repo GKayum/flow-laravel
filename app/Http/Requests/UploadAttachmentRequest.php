@@ -27,10 +27,9 @@ class UploadAttachmentRequest extends FormRequest
                 'required',
                 'file',
                 'max:51200',
-                'mimes:jpeg,jpg,png,gif,webp,mp4,mov,qt,webm,pdf,doc,docx,zip,rar,txt'
-                // 'mimetypes:image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,
-                    // application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip,application/x-rar-compressed,text/plain'
-            ]
+                'mimes:jpeg,jpg,png,gif,webp,mp4,mov,qt,webm,pdf,doc,docx,zip,rar,txt,webm,ogg,m4a,mp3,wav',
+            ],
+            'duration' => 'nullable|integer|min:1',
         ];
     }
 }

@@ -1,0 +1,72 @@
+.voicePlayer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 200px;
+    max-width: 200px;
+
+    .playBtn {
+        @include flex-center;
+        flex-shrink: 0;
+        padding: .7rem;
+        border-radius: 50%;
+        background: #fff;
+        border: none;
+        cursor: pointer;
+
+        &:disabled {
+            opacity: .5;
+        }
+
+        svg {
+            fill: var(--color-blue-2);
+            stroke-width: 0%;
+        }
+    }
+
+    &__inner {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+        
+        .waveForm {
+            position: relative;
+            height: 2rem;
+            width: 100%;
+            cursor: pointer;
+            display: flex; // Проверить
+            align-items: center; // Проверить
+    
+            .waveBars {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                height: 100%;
+                width: 100%; // Проверить
+                gap: 2px;
+                pointer-events: none;
+            
+                .bar {
+                    flex: 1;
+                    background-color: var(--color-blue-2);
+                    border-radius: 2px;
+                    opacity: .3;
+                    transition: background-color .2s ease;
+                    pointer-events: none;
+
+                    &.active {
+                        opacity: 1;
+                    }
+                }
+            }
+        }
+    
+        .time {
+            font-size: 0.75rem;
+            color: var(--color-grey-1);
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
+}

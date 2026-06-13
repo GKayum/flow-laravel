@@ -1,14 +1,18 @@
-import { SendHorizonal } from "lucide-react"
-import styles from "./MessageField.module.scss"
-import { Paperclip } from "lucide-react"
-import { Smile } from "lucide-react"
 import React, { useCallback, useEffect, useRef, useState } from "react"
+import { deleteAttachment, uploadAttachment } from "../../services/api"
+import { useVoiceRecorder } from "../../hooks/useVoiceRecorder"
+import { formatTime } from "../../utils/formatTime"
+import { Loader } from "../UI/Loader/Loader"
+import styles from "./MessageField.module.scss"
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
+import { Paperclip } from "lucide-react"
+import { Smile } from "lucide-react"
+import { SendHorizonal } from "lucide-react"
 import { X } from "lucide-react"
 import { FileImage } from "lucide-react"
 import { FileText } from "lucide-react"
-import { deleteAttachment, uploadAttachment } from "../../services/api"
+import { Mic } from "lucide-react"
 
 export default function MessageField({ onSendMessage, isSubmitting = false }) {
     const [message, setMessage] = useState('')
@@ -16,12 +20,44 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
     const [showPicker, setShowPicker] = useState(false)
     const [dropdownOpen, setDropdownOpen] = useState(false)
     const [fileAccept, setFileAccept] = useState('*')
+    const [isSendingVoice, setIsSendingVoice] = useState(false)
     const textareaRef = useRef(null)
     const fileInputRef = useRef(null)
+
+    const {
+        isRecording, duration, audioBlob,
+        startRecording, stopRecording, resetRecording,
+    } = useVoiceRecorder(300)
+
+    useEffect(() => {
+        if (!audioBlob) return
+
+        const ext = audioBlob.type.includes('webm') ? 'webm'
+            : audioBlob.type.includes('mp4') ? 'm4a'
+            : 'ogg'
+        const file = new File([audioBlob], `voice_${Date.now()}.${ext}`, { type: audioBlob.type })
+
+        setIsSendingVoice(true)
+
+        uploadAttachment(file, null, { duration })
+            .then(res => {
+                return onSendMessage({
+                    content: null,
+                    attachment_ids: [res.data.id],
+                })
+            })
+            .catch(error => {
+                console.error('Ошибка отправки голосового сообщения:', error)
+            }).finally(() => {
+                setIsSendingVoice(false)
+                resetRecording()
+            })
+    }, [audioBlob])
 
     const genId = () => `att_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
     const handleFileSelect = (e) => {
+        if (isRecording || isSendingVoice) return
         const selectedFiles = Array.from(e.target.files)
         if (!selectedFiles.length) return
 
@@ -75,6 +111,7 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        if (isRecording || isSendingVoice) return
 
         const uploadingCount = attachments.filter(a => a.uploading).length
         if (uploadingCount > 0) return
@@ -110,6 +147,7 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
     }, [message])
 
     const addEmoji = useCallback((emoji) => {
+        if (isRecording || isSendingVoice) return
         const textarea = textareaRef.current
         if (!textarea) return
 
@@ -117,7 +155,7 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
 
         setMessage(prev => prev.substring(0, start) + emoji.native + prev.substring(end))
         textarea.focus()
-    }, [])
+    }, [isRecording, isSendingVoice])
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -137,6 +175,12 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
         setDropdownOpen(false)
         setTimeout(() => fileInputRef.current?.click(), 0);
     }
+
+    const hasText = message.trim().length > 0
+    const hasAttachments = attachments.length > 0
+    const isUploading = attachments.some(a => a.uploading)
+    const canSubmit = (hasText || hasAttachments) && !isUploading
+    const isBusy = isRecording || isSendingVoice
 
     const renderPreview = (att) => {
         if (att.type === 'image' && att.preview) {
@@ -178,11 +222,11 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
 
     return (
         <form className={styles.messageForm} onSubmit={handleSubmit}>
-
             <div className={styles.pickerContainer}>
                 <button 
                     type="button" 
-                    className={`${styles.btn} ${showPicker ? styles.active : ''}`} 
+                    className={`${styles.btn} ${showPicker ? styles.active : ''}`}
+                    disabled={isBusy}
                     onClick={(e) => {
                         e.stopPropagation()
                         setShowPicker(prev => !prev)
@@ -224,21 +268,33 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
                 style={{ display: 'none' }}
             />
 
-            <textarea
-                ref={textareaRef}
-                className={styles.messageInput}
-                placeholder="Введите сообщение"
-                onChange={e => setMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                value={message}
-                rows={1}
-            />
+            {!isBusy ? (
+                <textarea
+                    ref={textareaRef}
+                    className={styles.messageInput}
+                    placeholder="Введите сообщение"
+                    onChange={e => setMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    value={message}
+                    rows={1}
+                />
+            ) : isRecording ? (
+                <div className={styles.recordingPlaceholder}>
+                    <span className={styles.recordingDot} />
+                    <span className={styles.recordingLabel}>{formatTime(duration)}</span>
+                </div>
+            ) : (
+                <div className={styles.recordingPlaceholder}>
+                    <span className={styles.sendingLabel}>Отправка голосового сообщения...</span>
+                </div>
+            )}
 
             <div className={styles.buttonContainer}>
                 <button 
                     type="button" 
                     className={`${styles.btn} ${dropdownOpen ? styles.active : ''}`} 
                     onClick={() => setDropdownOpen(prev => !prev)}
+                    disabled={isBusy}
                 >
                     <Paperclip />
                 </button>
@@ -266,9 +322,27 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
                 </div>
             </div>
 
-            <button type="submit" className={styles.messageSubmit} disabled={isSubmitting || attachments.some(a => a.uploading)}>
-                <SendHorizonal />
-            </button>
+            {isRecording ? (
+                <button
+                    type="button"
+                    className={`${styles.messageSubmit} ${styles.recording}`}
+                    onClick={stopRecording}
+                >
+                    <Mic />
+                </button>
+            ) : isSendingVoice ? (
+                <button type="button" className={styles.messageSubmit} disabled>
+                    <Loader />
+                </button>
+            ) : canSubmit ? (
+                <button type="submit" className={styles.messageSubmit} disabled={isSubmitting || !canSubmit}>
+                    <SendHorizonal />
+                </button>
+            ) : (
+                <button type="button" className={styles.messageSubmit} onClick={startRecording} disabled={isSubmitting || isUploading}>
+                    <Mic />
+                </button>
+            )}
         </form>
     )
 }

@@ -9,6 +9,7 @@ import { CircleArrowRight } from 'lucide-react'
 import { Image } from 'lucide-react'
 import { Video } from 'lucide-react'
 import { FileText } from 'lucide-react'
+import { AudioLines } from 'lucide-react'
 
 const getAttachmentLabel = (attachments) => {
     if (!attachments || attachments.length === 0) return 'Нет сообщений'
@@ -26,6 +27,12 @@ const getAttachmentLabel = (attachments) => {
             return (
                 <span className={styles.attachmentLabel}>
                     <Image /> Изображение
+                </span>
+            );
+        case 'voice':
+            return (
+                <span className={styles.attachmentLabel}>
+                    <AudioLines /> Голосовое сообщение
                 </span>
             );
         default:
@@ -85,7 +92,6 @@ export default function ChatItem({ chat, onDelete, onExit }) {
                 </div>
                 <div className={styles.messageBlock}>
                     {chat?.latestMessage && <span className={styles.name}>{`${chat.latestMessage.user.name}:\u00A0`}</span>}
-                    {console.log(chat)}
                     <div className={styles.message}>
                         {chat.latestMessage
                             ? chat.latestMessage.content || getAttachmentLabel(chat.latestMessage.attachments)
