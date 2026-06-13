@@ -123,9 +123,11 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, 
                             <div className={styles.attachmentsContainer}>
                                 {message.attachments.map(att => {
                                     if (att.type === 'voice') {
+                                        const audioUrl = `/api/attachment/${att.id}/stream`
+
                                         return (
                                             <div key={att.id} className={styles.voiceWrapper}>
-                                                <VoicePlayer url={att.path} duration={att.duration} />
+                                                <VoicePlayer url={audioUrl} duration={att.duration} />
                                             </div>
                                         )
                                     }
@@ -137,10 +139,12 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, 
                                         )
                                     }
                                     if (att.type === 'video') {
+                                        const videoUrl = `api/attachment/${att.id}/stream`
+
                                         return (
                                             <div key={att.id} className={styles.videoWrapper}>
                                                 <video controls preload="metadata" className={styles.messageVideo}>
-                                                    <source src={att.path} type={att.mime_type || 'video/mp4'} />
+                                                    <source src={videoUrl} type={att.mime_type || 'video/mp4'} />
                                                     Ваш браузер не поддерживает видео.
                                                 </video>
                                             </div>

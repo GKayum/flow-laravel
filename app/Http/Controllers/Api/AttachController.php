@@ -63,4 +63,19 @@ class AttachController extends Controller
 
         return response()->json(['message' => 'Вложение удалено']);
     }
+
+    public function stream(Attachment $attachment) {
+        $relativePath = Str::replaceFirst('/storage/', '', $attachment->path);
+        $disk = $attachment->disk ?? 'public';
+
+        if (!Storage::disk($disk)->exists($relativePath)) {
+            abort(404, 'Файл не найден');
+        }
+
+        $absolutePath = Storage::disk($disk)->path($relativePath);
+
+        return response()->file($absolutePath, [
+            'Accept-Ranges' => 'bytes',
+        ]);
+    }
 }

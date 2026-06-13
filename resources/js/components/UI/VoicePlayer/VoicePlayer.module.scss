@@ -35,30 +35,35 @@
             height: 2rem;
             width: 100%;
             cursor: pointer;
-            display: flex; // Проверить
-            align-items: center; // Проверить
+            user-select: none;
     
             .waveBars {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 height: 100%;
-                width: 100%; // Проверить
+                width: 100%;
                 gap: 2px;
-                pointer-events: none;
             
                 .bar {
                     flex: 1;
                     background-color: var(--color-blue-2);
                     border-radius: 2px;
                     opacity: .3;
-                    transition: background-color .2s ease;
-                    pointer-events: none;
 
                     &.active {
                         opacity: 1;
                     }
                 }
+            }
+
+            .waveOverlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                transition: clip-path .1s linear;
             }
         }
     
