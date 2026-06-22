@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Avatar from "../UI/Avatar/Avatar"
 import styles from "./MessageItem.module.scss"
 import ContextMenu from "../UI/ContextMenu/ContextMenu"
@@ -13,7 +13,7 @@ import { FileText } from "lucide-react"
 import { formatBytes } from "../../utils/formatBytes"
 import VoicePlayer from "../UI/VoicePlayer/VoicePlayer"
 
-export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, isEditing, onStartEdit, onCancelEdit }) {
+function MessageItem({ message, isCurrentUser, onDelete, onEdit, isEditing, onStartEdit, onCancelEdit }) {
     const [contextMenu, setContextMenu] = useState(null)
     const editDivRef = useRef(null)
     const { copy } = useCopyToClipboard()
@@ -50,7 +50,7 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, 
 
     const startEdit = useCallback(() => {
         onStartEdit()
-    }, [])
+    }, [onStartEdit])
 
     const handleSaveEdit = () => {
         const newContent = editDivRef.current?.textContent?.trim() || ''
@@ -127,7 +127,11 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, 
 
                                         return (
                                             <div key={att.id} className={styles.voiceWrapper}>
-                                                <VoicePlayer url={audioUrl} duration={att.duration} />
+                                                <VoicePlayer
+                                                    url={audioUrl} 
+                                                    duration={att.duration}
+                                                    isCurrentUser={isCurrentUser}
+                                                />
                                             </div>
                                         )
                                     }
@@ -177,3 +181,11 @@ export default function MessageItem({ message, isCurrentUser, onDelete, onEdit, 
         </>
     )
 }
+
+// export default memo(MessageItem, (prev, next) => {
+//     return prev.message.id === next.message.id &&
+//            prev.isCurrentUser === next.isCurrentUser &&
+//            prev.isEditing === next.isEditing
+// })
+
+export default MessageItem

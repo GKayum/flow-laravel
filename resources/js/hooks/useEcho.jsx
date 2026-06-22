@@ -1,6 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-export function useEcho(channelName, eventName, callback, dependencies = []) {
+export function useEcho(channelName, eventName, callback) {
+    const callbackRef = useRef(callback)
+    callbackRef.current = callback
+
     useEffect(() => {
         if (!channelName || !window.Echo) return
 
@@ -9,10 +12,11 @@ export function useEcho(channelName, eventName, callback, dependencies = []) {
 
         const formattedEvent = eventName.startsWith('.') ? eventName : `.${eventName}`
 
-        channel.listen(formattedEvent, callback)
+        const listener = (data) => callbackRef.current(data)
+        channel.listen(formattedEvent, listener)
 
         return () => {
-            channel.stopListening(formattedEvent)
+            channel.stopListening(formattedEvent, listener)
         }
-    }, [channelName, eventName, ...dependencies])
+    }, [channelName, eventName])
 }

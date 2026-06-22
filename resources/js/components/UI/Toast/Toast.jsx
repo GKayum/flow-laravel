@@ -3,25 +3,28 @@ import styles from "./Toast.module.scss"
 
 export default function Toast({ type, message, duration = 3000, onClose }) {
     const toastRef = useRef(null)
+    const onCloseRef = useRef(onClose)
+
+    onCloseRef.current = onClose
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            onClose()
+            onCloseRef.current()
         }, duration)
 
         return () => clearTimeout(timer)
-    }, [duration, onClose])
+    }, [duration])
 
     useEffect(() => {
         function handleClickOutside(e) {
             if (toastRef.current && !toastRef.current.contains(e.target)) {
-                onClose()
+                onCloseRef.current()
             }
         }
 
         document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [onClose])
+    }, [])
 
     return (
         <div className={styles.overlay} onClick={onClose}>

@@ -1,5 +1,5 @@
 import { useAuth } from "../../contexts/AuthContext"
-import { useState } from "react"
+import { useReducer, useState } from "react"
 import { handlerApiError } from "../../services/api"
 
 import { Button } from "../../components/UI/Button/Button"
@@ -7,31 +7,47 @@ import { Field } from "../../components/UI/Field/Field"
 import { Link } from "react-router-dom"
 import styles from "./LoginPage.module.scss"
 
+const initialSubmit = {
+    error: '',
+    validationErrors: {},
+    loading: false,
+}
+
+function submitReducer(state, action) {
+    switch (action.type) {
+        case 'SUBMIT_START':
+            return { ...initialSubmit, loading: true }
+        case 'SUBMIT_SUCCESS':
+            return { ...state, loading: false }
+        case 'SUBMIT_ERROR':
+            return { ...state, error: action.error || '', validationErrors: action.validationErrors || {}, loading: false }
+        default:
+            return state
+    }
+}
+
 export default function LoginPage() {
     const { login } = useAuth()
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     })
-    const [error, setError] = useState('')
-    const [validationErrors, setValidationErrors] = useState({})
-    const [loading, setLoading] = useState(false)
-
+    const [submitState, dispatchSubmit] = useReducer(submitReducer, initialSubmit)
+    const { loading, error, validationErrors } = submitState
     const [isFlipped, setIsFlipped] = useState(false)
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        setError('')
-        setValidationErrors({})
-
-        setLoading(true)
+        dispatchSubmit({ type: 'SUBMIT_START' })
 
         try {
             await login(formData.email, formData.password)
+            dispatchSubmit({ type: 'SUBMIT_SUCCESS' })
         } catch (error) {
-            handlerApiError(error, { setValidationErrors, setError })
-        } finally {
-            setLoading(false)
+            handlerApiError(error, { 
+                setValidationErrors: (errs) => dispatchSubmit({ type: 'SUBMIT_ERROR', validationErrors: errs }),
+                setError: (err) => dispatchSubmit({ type: 'SUBMIT_ERROR', error: err })
+            })
         }
     }
 

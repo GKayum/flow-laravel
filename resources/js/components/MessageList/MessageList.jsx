@@ -3,6 +3,11 @@ import { useAuth } from "../../contexts/AuthContext"
 import MessageItem from "../MessageItem/MessageItem"
 import styles from "./MessageList.module.scss"
 
+const isDifferentDay = (date1, date2) => {
+    if (!date1 || !date2) return false
+    return new Date(date1).toLocaleDateString() !== new Date(date2).toLocaleDateString()
+}
+
 export default function MessageList({ messages, onDeleteMessage, onEditMessage }) {
     const { user } = useAuth()
     const messageEndRef = useRef(null)
@@ -17,11 +22,6 @@ export default function MessageList({ messages, onDeleteMessage, onEditMessage }
             behavior: 'smooth'
         })
     }, [messages])
-
-    const isDifferentDay = (date1, date2) => {
-        if (!date1 || !date2) return false
-        return new Date(date1).toLocaleDateString() !== new Date(date2).toLocaleDateString()
-    }
 
     return (
         <div className={styles.messageList}>

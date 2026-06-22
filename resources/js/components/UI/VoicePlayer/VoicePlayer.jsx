@@ -1,17 +1,40 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import styles from "./VoicePlayer.module.scss";
 import { formatTime } from "../../../utils/formatTime";
 import { Pause } from "lucide-react";
 import { Play } from "lucide-react";
 
-export default function VoicePlayer({ url, duration }) {
+const initialState = {
+    isPlaying: false,
+    progress: 0,
+    currentTime: 0,
+    isReady: false,
+}
+
+function reducer(state, action) {
+    switch (action.type) {
+        case 'PLAY':
+            return { ...state, isPlaying: true };
+        case 'PAUSE':
+            return { ...state, isPlaying: false };
+        case 'ENDED':
+            return { ...state, isPlaying: false, progress: 0, currentTime: 0 };
+        case 'TIME_UPDATE':
+            return { ...state, currentTime: action.currentTime, progress: action.progress };
+        case 'READY':
+            return { ...state, isReady: true };
+        default:
+            return state;
+    }
+}
+
+export default function VoicePlayer({ url, duration, isCurrentUser = false }) {
     const audioRef = useRef(null)
     const waveRef = useRef(null)
     const isDraggingRef = useRef(null)
-    const [isPlaying, setIsPlaying] = useState(false)
-    const [progress, setProgress] = useState(0)
-    const [currentTime, setCurrentTime] = useState(0)
-    const [isReady, setIsReady] = useState(false)
+    const [isDragging, setIsDragging] = useState(false)
+    const [state, dispatch] = useReducer(reducer, initialState)
+    const { isPlaying, progress, currentTime, isReady } = state
 
     const toggle = () => {
         if (!audioRef.current || !isReady) return
@@ -26,17 +49,20 @@ export default function VoicePlayer({ url, duration }) {
         const audio = audioRef.current
         if (!audio) return
 
-        const onLoadedMetadata = () => setIsReady(true)
-        const onPlay = () => setIsPlaying(true)
-        const onPause = () => setIsPlaying(false)
-        const onEnded = () => { setIsPlaying(false); setProgress(0); setCurrentTime(0); }
+        const onLoadedMetadata = () => dispatch({ type: 'READY' })
+        const onPlay = () => dispatch({ type: 'PLAY' })
+        const onPause = () => dispatch({ type: 'PAUSE' })
+        const onEnded = () => dispatch({ type: 'ENDED' })
         const onTimeUpdate = () => {
             if (isDraggingRef.current) return
-            setCurrentTime(audio.currentTime)
-            setProgress((audio.currentTime / audio.duration) * 100)
+            dispatch({
+                type: 'TIME_UPDATE',
+                currentTime: audio.currentTime,
+                progress: (audio.currentTime / audio.duration) * 100,
+            })
         }
 
-        if (audio.readyState >= 2) setIsReady(true)
+        if (audio.readyState >= 2) dispatch({ type: 'READY' })
 
         audio.addEventListener('loadedmetadata', onLoadedMetadata)
         audio.addEventListener('play', onPlay)
@@ -65,13 +91,18 @@ export default function VoicePlayer({ url, duration }) {
 
         if (!total || !isFinite(total)) return
 
-        setProgress(pct * 100)
-        setCurrentTime(pct * total)
+        dispatch({
+            type: 'TIME_UPDATE',
+            currentTime: pct * total,
+            progress: pct * 100,
+        })
+
         return pct * total
     }
 
     const handleMouseDown = (e) => {
         if (!isReady || e.button !== 0) return
+        setIsDragging(true)
         isDraggingRef.current = true
 
         updateProgress(e.clientX)
@@ -87,6 +118,7 @@ export default function VoicePlayer({ url, duration }) {
 
     const handleMouseUp = (e) => {
         if (!isDraggingRef.current) return
+        setIsDragging(false)
         isDraggingRef.current = false
 
         const finalTime = updateProgress(e.clientX)
@@ -107,7 +139,7 @@ export default function VoicePlayer({ url, duration }) {
     }, [])
 
     return (
-        <div className={styles.voicePlayer}>
+        <div className={`${styles.voicePlayer} ${isCurrentUser ? styles.own : ''}`}>
             <button 
                 type="button" 
                 className={styles.playBtn} 
@@ -133,7 +165,7 @@ export default function VoicePlayer({ url, duration }) {
                         ))}
                     </div>
                     <div 
-                        className={styles.waveOverlay}
+                        className={`${styles.waveOverlay} ${isDragging ? styles.dragging : ''}`}
                         style={{ clipPath: `inset(0 ${100 - progress}% 0 0)` }}
                     >
                         <div className={styles.waveBars}>

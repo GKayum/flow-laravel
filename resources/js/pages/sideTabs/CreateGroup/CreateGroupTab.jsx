@@ -1,6 +1,6 @@
 import styles from "./CreateGroupTab.module.scss"
 import { Field } from "../../../components/UI/Field/Field"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useReducer, useState } from "react"
 import { api, handlerApiError } from "../../../services/api"
 import TabHeader from "../../../components/TabHeader/TabHeader"
 import GroupAvatarCropper from "../../../components/UI/GroupAvatarCropper/GroupAvatarCropper"
@@ -9,17 +9,56 @@ import Avatar from "../../../components/UI/Avatar/Avatar"
 import { CircleCheck } from "lucide-react"
 import { useChat } from "../../../contexts/ChatContext"
 import { debounce } from "../../../utils/debounce"
+import { Loader } from "../../../components/UI/Loader/Loader"
+
+const initialForm = {
+    data: { avatar: null, name: '' },
+    error: '',
+    validationErrors: {},
+    submitting: false
+}
+
+function formReducer(state, action) {
+    switch (action.type) {
+        case 'SET_NAME':
+            return { ...state, data: { ...state.data, name: action.value } }
+        case 'SET_AVATAR':
+            return { ...state, data: { ...state.data, avatar: action.value } }
+        case 'SUBMIT_START':
+            return { ...state, error: '', validationErrors: {}, submitting: true }
+        case 'SUBMIT_SUCCESS':
+            return { ...state, submitting: false }
+        case 'SUBMIT_ERROR':
+            return { ...state, submitting: false, error: action.error || '', validationErrors: action.validationErrors || {} }
+        case 'CLEAR':
+            return initialForm
+        default:
+            return state
+    }
+}
+
+const initialSearch = { users: [], query: '' }
+
+function searchReducer(state, action) {
+    switch (action.type) {
+        case 'SET_QUERY':
+            return { ...state, query: action.value }
+        case 'SET_USERS':
+            return { ...state, users: action.users }
+        case 'CLEAR':
+            return initialSearch
+        default:
+            return state
+    }
+}
 
 export default function CreateGroupTab({ onClose }) {
     const { onSelectChat, setChats } = useChat()
-    const [formData, setFormData] = useState({ avatar: null, name: '' })
-    const [users, setUsers] = useState([])
+    const [form, dispatchForm] = useReducer(formReducer, initialForm)
+    const [search, dispatchSearch] = useReducer(searchReducer, initialSearch)
     const [members, setMembers] = useState([])
+
     const selectedSet = useMemo(() => new Set(members), [members])
-    const [error, setError] = useState('')
-    const [validationErrors, setValidationErrors] = useState({})
-    const [submitting, setSubmitting] = useState(false)
-    const [value, setValue] = useState('')
 
     const debouncedSearch = useMemo(
         () =>
@@ -30,7 +69,7 @@ export default function CreateGroupTab({ onClose }) {
                 params.set('q', searchQuery)
 
                 api.get(`/api/users/search?${params.toString()}`)
-                    .then(res => setUsers(res.data))
+                    .then(res => dispatchSearch({ type: 'SET_USERS', users: res.data }))
                     .catch(error => console.error(error))
             }),
         []
@@ -43,10 +82,10 @@ export default function CreateGroupTab({ onClose }) {
     }, [debouncedSearch])
 
     const handleSearchChange = (newValue) => {
-        setValue(newValue)
+        dispatchSearch({ type: 'SET_QUERY', value: newValue })
 
         if (!newValue.trim()) {
-            setUsers([])
+            dispatchSearch({ type: 'SET_USERS', users: [] })
             debouncedSearch.cancel()
         } else {
             debouncedSearch(newValue)
@@ -55,22 +94,19 @@ export default function CreateGroupTab({ onClose }) {
 
     const handleChangeAvatar = (avatar) => {
         if (!avatar) return
-        setFormData(prev => ({ ...prev, avatar: avatar }))
+        dispatchForm({ type: 'SET_AVATAR', value: avatar })
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        if (!formData.name) return
-        setError('')
-        setValidationErrors({})
-
-        setSubmitting(true)
+        if (!form.data.name) return
+        dispatchForm({ type: 'SUBMIT_START' })
 
         try {
             const data = new FormData()
-            data.append('name', formData.name);
-            if (formData.avatar) {
-                data.append('avatar', formData.avatar, 'avatar.webp')
+            data.append('name', form.data.name);
+            if (form.data.avatar) {
+                data.append('avatar', form.data.avatar, 'avatar.webp')
             }
             if (members && members.length > 0) {
                 members.forEach((id, index) => {
@@ -82,17 +118,18 @@ export default function CreateGroupTab({ onClose }) {
             const response = await api.post('/api/chat/create', data, {
                 headers: {'Content-Type' : 'multipart/form-data'}
             })
+
             onClose()
-            setUsers([])
-            setValue('')
+            dispatchSearch({ type: 'CLEAR' })
             setMembers([])
-            setFormData({ avatar: null, name: '' })
+            dispatchForm({ type: 'CLEAR' })
             onSelectChat(response.data.chat)
             setChats(prev => [response.data.chat, ...prev])
         } catch (error) {
-            handlerApiError(error, { setValidationErrors, setError })
-        } finally {
-            setSubmitting(false)
+            handlerApiError(error, { 
+                setValidationErrors: (errs) => dispatchForm({ type: 'SUBMIT_ERROR', validationErrors: errs }),
+                setError: (err) => dispatchForm({ type: 'SUBMIT_ERROR', error: err })
+            })
         }
     }
 
@@ -118,20 +155,26 @@ export default function CreateGroupTab({ onClose }) {
                         id="name"
                         placeholder='Название группы' 
                         type='text'
-                        onChange={e => setFormData({...formData, name: e.target.value})}
-                        value={formData.name}
-                        style={validationErrors.name ? { borderColor: '#FF0001' } : {}}
+                        onChange={e => dispatchForm({ type: 'SET_NAME', value: e.target.value })}
+                        value={form.data.name}
+                        style={form.validationErrors.name ? { borderColor: '#FF0001' } : {}}
                     />
-                    <button type="submit" className={`${styles.submitButton} ${formData.name ? styles.visible : ''}`}>
-                        <CircleCheck />
+                    <button 
+                        type="submit" 
+                        className={`${styles.submitButton} ${form.data.name ? styles.visible : ''}`} 
+                        disabled={form.submitting}
+                    >
+                        {form.submitting ? <Loader /> : <CircleCheck />}
                     </button>
                 </form>
+
                 <section className={styles.body__block}>
-                    <SearchField value={value} setValue={handleSearchChange} />
+                    <SearchField value={search.query} setValue={handleSearchChange} />
                 </section>
+
                 <section className={styles.body__block}>
                     <div className={styles.usersContainer}>
-                        {users?.map((user) => (
+                        {search.users?.map((user) => (
                             <button className={styles.userButton} key={user.id} onClick={() => togglePick(user.id)}>
                                 <input 
                                     type="checkbox"

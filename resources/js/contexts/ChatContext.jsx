@@ -1,17 +1,54 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useState } from "react";
 import { api } from "../services/api";
 import { useAuth } from "./AuthContext"
 import { useEcho } from "../hooks/useEcho";
 
 const ChatContext = createContext()
 
+const messagesReducer = (state, action) => {
+    switch (action.type) {
+        case 'CLEAR':
+            return { data: [], loading: false };
+        case 'LOAD_START':
+            return { data: [], loading: true };
+        case 'LOAD_SUCCESS':
+            return { data: action.payload, loading: false };
+        case 'LOAD_ERROR':
+            return { ...state, loading: false };
+        case 'APPEND':
+            return { ...state, data: [...state.data, action.payload] };
+        case 'UPDATE':
+            const hasMessage = state.data.some(m => m.id === action.id)
+            if (!hasMessage) return state
+
+            return { ...state, data: state.data.map(m => m.id === action.id ? action.payload : m) };
+        case 'DELETE':
+            return { ...state, data: state.data.filter(m => m.id !== action.id) };
+        case 'UPDATE_MEMBER':
+            return {
+                ...state,
+                data: state.data.map(message =>
+                    message.user?.id === action.payload.id
+                        ? {
+                            ...message,
+                            user: { ...message.user, ...action.payload }
+                        }
+                        : message
+                )
+            }
+        default:
+            return state;
+    }
+}
+
 export function ChatProvider({ children }) {
     const { user } = useAuth()
     const [chats, setChats] = useState([])
     const [chatsLoading, setChatsLoading] = useState(true)
     const [selectedChatId, setSelectedChatId] = useState(null)
-    const [currentMessages, setCurrentMessages] = useState([])
-    const [messagesLoading, setMessagesLoading] = useState(false)
+    const [messagesState, messagesDispatch] = useReducer(messagesReducer, { data: [], loading: false })
+    const currentMessages = messagesState.data
+    const messagesLoading = messagesState.loading
 
     useEffect(() => {
         if ('Notification' in window && Notification.permission === 'default') {
@@ -22,7 +59,7 @@ export function ChatProvider({ children }) {
     const showBrowserNotification = useCallback((message) => {
         if (document.visibilityState === 'hidden') {
             if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification("Новое сообщение", {
+                new Notification("Flow", {
                     body: `${message.user.name}: ${message.content}`,
                     icon: message.user.avatar || '/icons/default-avatar.png',
                 })
@@ -60,22 +97,22 @@ export function ChatProvider({ children }) {
 
     useEffect(() => {
         if (!selectedChatId) {
-            setCurrentMessages([])
+            messagesDispatch({ type: 'CLEAR' })
             return
         }
         let isCurrentRequest = true
-        setMessagesLoading(true)
+        messagesDispatch({ type: 'LOAD_START' })
 
         api.get(`/api/message/${selectedChatId}/list`)
             .then(response => {
                 if (isCurrentRequest) {
-                    setCurrentMessages(response.data)
+                    messagesDispatch({ type: 'LOAD_SUCCESS', payload: response.data })
                     console.log(response.data);
                 }
             })
-            .catch(error => console.error('Messages load error:', error))
-            .finally(() => {
-                if (isCurrentRequest) setMessagesLoading(false)
+            .catch(error => {
+                console.error('Messages load error:', error)
+                if (isCurrentRequest) messagesDispatch({ type: 'LOAD_ERROR' })
             })
 
         return () => { isCurrentRequest = false }
@@ -115,24 +152,11 @@ export function ChatProvider({ children }) {
     }, [])
 
     const updateMemberInMessages = useCallback((updatedUser) => {
-        const { name, avatar, email, dateOfBirth } = updatedUser
-        setCurrentMessages(prev =>
-            prev.map(message =>
-                message.user?.id === updatedUser.id
-                    ? { 
-                        ...message, 
-                        user: { 
-                            ...message.user, 
-                            name,
-                            avatar,
-                            email,
-                            dateOfBirth,
-                        } 
-                    }
-                    : message
-            )
-        )
-    }, [])
+        messagesDispatch({
+            type: 'UPDATE_MEMBER',
+            payload: updatedUser
+        })
+    }, [messagesDispatch])
 
     const channelName = user?.id ? `user.${user.id}` : null
 
@@ -140,7 +164,7 @@ export function ChatProvider({ children }) {
         showBrowserNotification(data.message)
 
         if (data.chat_id === selectedChatId) {
-            setCurrentMessages(prev => [...prev, data.message])
+            messagesDispatch({ type: 'APPEND', payload: data.message })
             markChatAsRead(data.chat_id)
         }
 
@@ -155,41 +179,33 @@ export function ChatProvider({ children }) {
             }
             return chat
         }))
-    }, [selectedChatId, markChatAsRead, showBrowserNotification])
+    }) // [selectedChatId, markChatAsRead, showBrowserNotification]
 
     useEcho(channelName, "message.updated", (data) => {
-        if (data.chat_id === selectedChatId) {
-            setCurrentMessages(prev =>
-                prev.map(m => (m.id === data.message.id ? data.message : m))
-            );
-        }
+        messagesDispatch({ type: 'UPDATE', id: data.message.id, payload: data.message })
+
         if (data.is_latest) {
             updateChat({ id: data.chat_id, latestMessage: data.message })
         }
-    }, [selectedChatId, updateChat])
+    }) // [selectedChatId, updateChat]
 
     useEcho(channelName, "message.deleted", (data) => {
+        if (data.chat_id === selectedChatId) {
+            messagesDispatch({ type: 'DELETE', id: data.message_id })
+        }
+
         setChats(prev => prev.map(chat => {
             if (chat.id !== data.chat_id) return chat
-
-            // const wasLatest = chat.latestMessage?.id === data.message_id
 
             return {
                 ...chat,
                 latestMessage: data.latest_message,
-                // unread_count: (wasLatest && chat.unread_count > 0)
                 unread_count: (chat.unread_count > 0)
                     ? chat.unread_count - 1
                     : chat.unread_count
             }
         }))
-
-        if (data.chat_id === selectedChatId) {
-            setCurrentMessages(prev =>
-                prev.filter(m => m.id !== data.message_id)
-            );
-        }
-    }, [selectedChatId])
+    }) // [selectedChatId]
 
     useEcho(channelName, "chat.created", (data) => {
         setChats(prev => [data.chat, ...prev])
@@ -197,7 +213,7 @@ export function ChatProvider({ children }) {
 
     useEcho(channelName, "chat.updated", (data) => {
         updateChat(data.chat)
-    }, [updateChat])
+    }) // [updateChat]
 
     useEcho(channelName, "chat.deleted", (data) => {        
         setChats(prev =>
@@ -206,9 +222,9 @@ export function ChatProvider({ children }) {
 
         if (selectedChatId === data.chat_id) {
             setSelectedChatId(null)
-            setCurrentMessages([])
+            messagesDispatch({ type: 'CLEAR' })
         }
-    }, [selectedChatId])
+    }) // [selectedChatId]
 
     useEcho(channelName, "chatmember.added", (data) => {
         setChats(prev =>
@@ -219,7 +235,7 @@ export function ChatProvider({ children }) {
                         : chat)
                 : [data.chat, ...prev]
         )
-    }, [])
+    }) // []
 
     useEcho(channelName, "chatmember.removed", (data) => {
         if (data.member_id === user?.id) {
@@ -229,17 +245,17 @@ export function ChatProvider({ children }) {
 
             if (selectedChatId === data.chat_id) {
                 setSelectedChatId(null)
-                setCurrentMessages([])
+                messagesDispatch({ type: 'CLEAR' })
             }
         } else {
             updateChat({ id: data.chat_id, members: data.members })
         }
-    }, [selectedChat, updateChat, user?.id])
+    }) // [selectedChat, updateChat, user?.id]
 
     useEcho(channelName, "user.updated", (data) => {
         updateMemberInChats(data.user)
         updateMemberInMessages(data.user)
-    }, [updateMemberInChats, updateMemberInMessages])
+    }) // [updateMemberInChats, updateMemberInMessages]
 
     const openPersonalChat = useCallback(async (userId) => {
         try {
@@ -265,7 +281,7 @@ export function ChatProvider({ children }) {
     const closeChat = useCallback(() => setSelectedChatId(null), [])
 
     const sortedChats = useMemo(() => {
-        return [...chats].sort((a, b) => {
+        return chats.toSorted((a, b) => {
             const timeA = a.latestMessage?.created_at ? new Date(a.latestMessage.created_at).getTime() : 0
             const timeB = b.latestMessage?.created_at ? new Date(b.latestMessage.created_at).getTime() : 0
             return timeB - timeA
@@ -283,14 +299,13 @@ export function ChatProvider({ children }) {
         openPersonalChat,
         onCloseChat: closeChat,
         currentMessages,
-        setCurrentMessages,
         messagesLoading,
-        setMessagesLoading,
+        messagesDispatch,
         updateMemberInMessages,
         updateMemberInChats,
         markChatAsRead,
     }), [
-        chats, 
+        sortedChats, 
         chatsLoading, 
         selectedChat, 
         selectedChatId,
@@ -300,6 +315,9 @@ export function ChatProvider({ children }) {
         closeChat,
         currentMessages,
         messagesLoading,
+        updateMemberInChats,
+        updateMemberInMessages,
+        markChatAsRead
     ])
 
     return (

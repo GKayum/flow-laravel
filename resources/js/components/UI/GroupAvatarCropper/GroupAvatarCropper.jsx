@@ -1,40 +1,61 @@
 import Cropper from "react-easy-crop"
-import { useRef, useState } from "react"
+import { useReducer, useRef, useState } from "react"
 import { Loader } from "../Loader/Loader"
 import { Camera, Check, X } from "lucide-react"
 import styles from "./GroupAvatarCropper.module.scss"
 
+const initialMedia = {
+    image: null,
+    previewUrl: null,
+    loading: false,
+}
+
+function mediaReducer(state, action) {
+    switch (action.type) {
+        case 'SET_IMAGE':
+            return { ...state, image: action.image, loading: false }
+        case 'SET_PREVIEW':
+            return { ...state, previewUrl: action.url, image: null, loading: false }
+        case 'START_CROP':
+            return { ...state, loading: true }
+        case 'RESET_IMAGE':
+            return { ...state, image: null }
+        default:
+            return state
+    }
+}
+
 export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
-    const [image, setImage] = useState(null)
-    const [previewUrl, setPreviewUrl] = useState(null)
-    const [loading, setLoading] = useState(false)
+    const [media, dispatchMedia] = useReducer(mediaReducer, initialMedia)
     const inputRef = useRef()
 
     const [crop, setCrop] = useState({x: 0, y: 0})
     const [zoom, setZoom] = useState(1)
-    const [croppedArea, setCroppedArea] = useState(null)
+    const croppedAreaRef = useRef(null)
 
     const onInputChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
             const reader = new FileReader()
             reader.readAsDataURL(e.target.files[0])
             reader.onload = function () {
-                setImage(reader.result)                
+                dispatchMedia({ type: 'SET_IMAGE', image: reader.result })          
             }
         }
     }
 
-    const onCropComplete = (croppedAreaPercentage, croppedAreaPixels) => {
-        setCroppedArea(croppedAreaPixels)
+    const onCropComplete = (_, croppedAreaPixels) => {
+        croppedAreaRef.current = croppedAreaPixels
     }
 
-    const onCropDone = async (croppedArea) => {
-        if (!image) return
-        setLoading(true)
-        setImage(null)
+    const onCropDone = async () => {
+        if (!media.image) return
+        const croppedArea = croppedAreaRef.current
+        if (!croppedArea) return
 
+        dispatchMedia({ type: 'START_CROP' })
+        
         const img = new Image()
-        img.src = image
+        img.src = media.image
         img.onload = () => {
             const canvas = document.createElement('canvas')
             canvas.width = croppedArea.width
@@ -58,9 +79,8 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
             canvas.toBlob(
                 (blob) => {
                     if (!blob) return
-                    setLoading(false)
                     const url = URL.createObjectURL(blob)
-                    setPreviewUrl(url)
+                    dispatchMedia({ type: 'SET_PREVIEW', previewUrl: url })
                     onChangeAvatar(blob)
                 },
                 'image/webp',
@@ -69,15 +89,15 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
         }
     }
 
-    const currentAvatarSrc = previewUrl || avatar
+    const currentAvatarSrc = media.previewUrl || avatar
 
     return (
         <div className={styles.avatarCropperContainer}>
-            {image ? (
+            {media.image ? (
                 <>
                 <div className={styles.avatarCropperContainer__cropper}>
                     <Cropper
-                        image={image}
+                        image={media.image}
                         aspect={1 / 1}
                         crop={crop}
                         zoom={zoom}
@@ -91,13 +111,13 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
                 <div className={styles.actions}>
                     <button
                         className={`${styles.actions__button} ${styles.confirm}`}
-                        onClick={() => onCropDone(croppedArea)}
+                        onClick={() => onCropDone()}
                     >
                         <Check className={styles.icon} />
                     </button>
                     <button
                         className={`${styles.actions__button} ${styles.cancel}`}
-                        onClick={() => setImage(null)}
+                        onClick={() => dispatchMedia({ type: 'RESET_IMAGE' })}
                     >
                         <X className={styles.icon} />
                     </button>
@@ -117,7 +137,7 @@ export default function GroupAvatarCropper({ onChangeAvatar, avatar = null }) {
                     className={styles.button}
                     onClick={() => inputRef.current.click()}
                 >
-                    {loading ? (
+                    {media.loading ? (
                         <Loader style={{ color: '#fff' }} width='32px' height='32px' />
                     ) : (
                         <Camera className={styles.icon} />

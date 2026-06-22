@@ -10,6 +10,7 @@ const TRANSLATIONS = {
 
 const getDateTimeFormatter = (locale) => {
     if (!formattersCache.date[locale]) {
+        // eslint-disable-next-line react-doctor/js-hoist-intl -- кэширование на уровне модуля, форматтер создается один раз на локаль
         formattersCache.date[locale] = new Intl.DateTimeFormat(locale, {
             day: 'numeric',
             month: 'long',
@@ -21,6 +22,7 @@ const getDateTimeFormatter = (locale) => {
 
 const getPluralRules = (locale) => {
     if (!formattersCache.plural[locale]) {
+        // eslint-disable-next-line react-doctor/js-hoist-intl -- кэширование на уровне модуля
         formattersCache.plural[locale] = new Intl.PluralRules(locale)
     }
     return formattersCache.plural[locale]

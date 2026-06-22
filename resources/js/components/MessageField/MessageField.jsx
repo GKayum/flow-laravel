@@ -14,15 +14,57 @@ import { FileImage } from "lucide-react"
 import { FileText } from "lucide-react"
 import { Mic } from "lucide-react"
 
+const genId = () => `att_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+
+function AttachmentPreview({ attachment, onRemove }) {
+    const { type, preview, name, uploading, progress, error, localId, file, url } = attachment
+
+    if (type === 'image' && preview) {
+        return (
+            <div className={styles.previewItem}>
+                <img src={preview} alt={name} className={styles.previewImage} />
+                {uploading && <div className={styles.previewOverlay}><span>{progress}%</span></div>}
+                {error && <div className={styles.previewError}><span>{error}</span></div>}
+                <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => onRemove(localId)}>
+                    <X className={styles.icon} />
+                </button>
+            </div>
+        )
+    }
+    if (type === 'video') {
+        return (
+            <div className={styles.previewItem}>
+                <video className={styles.previewVideo} controls={!uploading}>
+                    <source src={preview || url || ''} type={file?.type} />
+                </video>
+                {uploading && <div className={styles.previewOverlay}><span>{progress}%</span></div>}
+                <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => onRemove(localId)}>
+                    <X className={styles.icon} />
+                </button>
+            </div>
+        )
+    }
+    return (
+        <div className={styles.previewItemFile}>
+            <FileText className={styles.fileIcon} />
+            <span className={styles.fileName}>{name}</span>
+            {uploading && <span className={styles.fileProgress}>{progress}%</span>}
+            <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => onRemove(localId)}>
+                <X className={styles.icon} />
+            </button>
+        </div>
+    )
+}
+
 export default function MessageField({ onSendMessage, isSubmitting = false }) {
     const [message, setMessage] = useState('')
     const [attachments, setAttachments] = useState([])
     const [showPicker, setShowPicker] = useState(false)
     const [dropdownOpen, setDropdownOpen] = useState(false)
-    const [fileAccept, setFileAccept] = useState('*')
     const [isSendingVoice, setIsSendingVoice] = useState(false)
     const textareaRef = useRef(null)
     const fileInputRef = useRef(null)
+    const fileAcceptRef = useRef('*')
 
     const {
         isRecording, duration, audioBlob,
@@ -53,8 +95,6 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
                 resetRecording()
             })
     }, [audioBlob])
-
-    const genId = () => `att_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
     const handleFileSelect = (e) => {
         if (isRecording || isSendingVoice) return
@@ -97,17 +137,19 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
         e.target.value = ''
     }
 
-    const removeAttachment = (localId) => {
-        const att = attachments.find(a => a.localId === localId)
-        if (!att) return
+    const removeAttachment = useCallback((localId) => {
+        setAttachments(prev => {
+            const att = prev.find(a => a.localId === localId)
+            if (!att) return
 
-        if (att.id && !att.uploading) {
-            deleteAttachment(att.id).catch(console.error)
-        }
-        if (att.preview) URL.revokeObjectURL(att.preview)
+            if (att.id && !att.uploading) {
+                deleteAttachment(att.id).catch(console.error)
+            }
+            if (att.preview) URL.revokeObjectURL(att.preview)
 
-        setAttachments(prev => prev.filter(a => a.localId !== localId))
-    }
+            return prev.filter(a => a.localId !== localId)
+        })
+    }, [])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -119,14 +161,14 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
         if (!message.trim() && attachments.length === 0) return
         if (isSubmitting) return
 
-        const attachmentIds = attachments.filter(a => a.id && !a.error).map(a => a.id)
+        const attachmentIds = attachments.flatMap(a => (a.id && !a.error) ? [a.id] : [])
 
         const payload = {
             content: message.trim() || null,
             ...(attachmentIds.length ? { attachment_ids: attachmentIds } : {})
         }
 
-        const previews = attachments.map(a => a.preview).filter(Boolean)
+        const previews = attachments.flatMap(a => a.preview ? [a.preview] : [])
         setMessage('')
         setAttachments([])
 
@@ -171,7 +213,7 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
     }
 
     const openFilePicker = (acceptType) => {
-        setFileAccept(acceptType)
+        fileAcceptRef.current = acceptType
         setDropdownOpen(false)
         setTimeout(() => fileInputRef.current?.click(), 0);
     }
@@ -181,44 +223,6 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
     const isUploading = attachments.some(a => a.uploading)
     const canSubmit = (hasText || hasAttachments) && !isUploading
     const isBusy = isRecording || isSendingVoice
-
-    const renderPreview = (att) => {
-        if (att.type === 'image' && att.preview) {
-            return (
-                <div className={styles.previewItem}>
-                    <img src={att.preview} alt={att.name} className={styles.previewImage} />
-                    {att.uploading && <div className={styles.previewOverlay}><span>{att.progress}%</span></div>}
-                    {att.error && <div className={styles.previewError}><span>{att.error}</span></div>}
-                    <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => removeAttachment(att.localId)}>
-                        <X className={styles.icon} />
-                    </button>
-                </div>
-            )
-        }
-        if (att.type === 'video') {
-            return (
-                <div className={styles.previewItem}>
-                    <video className={styles.previewVideo} controls={!att.uploading}>
-                        <source src={att.preview || att.url || ''} type={att.file?.type} />
-                    </video>
-                    {att.uploading && <div className={styles.previewOverlay}><span>{att.progress}%</span></div>}
-                    <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => removeAttachment(att.localId)}>
-                        <X className={styles.icon} />
-                    </button>
-                </div>
-            )
-        }
-        return (
-            <div className={styles.previewItemFile}>
-                <FileText className={styles.fileIcon} />
-                <span className={styles.fileName}>{att.name}</span>
-                {att.uploading && <span className={styles.fileProgress}>{att.progress}%</span>}
-                <button type="button" className={`${styles.actions__button} ${styles.cancel}`} onClick={() => removeAttachment(att.localId)}>
-                    <X className={styles.icon} />
-                </button>
-            </div>
-        )
-    }
 
     return (
         <form className={styles.messageForm} onSubmit={handleSubmit}>
@@ -252,7 +256,7 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
                     <div className={styles.filesPreviewContainer}>
                         {attachments.map(att => (
                             <React.Fragment key={att.localId}>
-                                {renderPreview(att)}
+                                <AttachmentPreview attachment={att} onRemove={removeAttachment} />
                             </React.Fragment>
                         ))}
                     </div>
@@ -261,7 +265,7 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
 
             <input 
                 type="file"
-                accept={fileAccept}
+                accept={fileAcceptRef.current}
                 multiple
                 onChange={handleFileSelect}
                 ref={fileInputRef}

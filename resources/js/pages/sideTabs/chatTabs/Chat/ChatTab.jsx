@@ -28,7 +28,7 @@ export default function ChatTab({ onChatTabChange, showToast, onClose }) {
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: (error) => showToast(error, 'danger') })
         }
-    }, [selectedChat, updateChat])
+    }, [selectedChat, updateChat, showToast])
 
     const handleChangeRole = useCallback(async (memberId, newRole = 'admin') => {
         if (!selectedChat) return

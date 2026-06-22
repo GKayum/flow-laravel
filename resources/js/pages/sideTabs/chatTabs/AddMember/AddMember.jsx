@@ -13,8 +13,6 @@ export default function AddMember({ onChatTabChange, showToast, onClose }) {
     const [users, setUsers] = useState([])
     const [members, setMembers] = useState([])
     const selectedIds = useMemo(() => new Set(members.map(m => m.id)), [members])
-    const [error, setError] = useState('')
-    const [validationErrors, setValidationErrors] = useState({})
     const [submitting, setSubmitting] = useState(false)
     const [value, setValue] = useState('')
 
@@ -54,9 +52,6 @@ export default function AddMember({ onChatTabChange, showToast, onClose }) {
         e.preventDefault()
         
         if (members.length === 0) return
-
-        setError('')
-        setValidationErrors({})
 
         setSubmitting(true)
 

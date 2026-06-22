@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import styles from './ChatWindow.module.scss'
 import { X } from 'lucide-react'
 import { Loader } from '../UI/Loader/Loader'
@@ -10,13 +10,13 @@ import { useChat } from '../../contexts/ChatContext'
 import { usePlural } from '../../hooks/usePlural'
 import { useChatDisplay } from '../../hooks/useChatDisplay'
 
-export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose }) {
+function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose }) {
     const { 
         selectedChat,
         selectedChatId,
         onCloseChat, 
         updateChat,
-        setCurrentMessages,
+        messagesDispatch,
         currentMessages,
         messagesLoading,
         markChatAsRead,
@@ -46,11 +46,9 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
             // await api.get('/sanctum/csrf-cookie')
             const response = await api.post(`/api/message/${sendingChatId}/send`, payload)
 
-            setCurrentMessages(prev =>
-                activeChatIdRef.current === sendingChatId
-                    ? [...prev, response.data]
-                    : prev
-            )
+            if (activeChatIdRef.current === sendingChatId) {
+                messagesDispatch({ type: 'APPEND', payload: response.data })
+            }
 
             updateChat({
                 id: sendingChatId,
@@ -61,7 +59,7 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         } finally {
             setSubmittingChatId(null)
         }
-    }, [selectedChat, setCurrentMessages, updateChat])
+    }, [selectedChat, messagesDispatch, updateChat])
 
     const handleDeleteMessage = useCallback(async (messageId) => {
         if (!selectedChat) return
@@ -69,25 +67,26 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         try {
             await api.delete(`/api/message/${messageId}/delete`)
 
-            const updated = currentMessages.filter(m => m.id !== messageId)
-            setCurrentMessages(updated)
+            messagesDispatch({ type: 'DELETE', id: messageId })
 
-            const newLatest = updated.length > 0 ? updated[updated.length - 1] : null;
+            const newLatest = currentMessages.length > 1 ? currentMessages[currentMessages.length - 2] : null;
             updateChat({ id: selectedChat.id, latestMessage: newLatest });
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }
-    }, [selectedChat, updateChat, currentMessages, setCurrentMessages])
+    }, [selectedChat, updateChat, currentMessages, messagesDispatch])
 
     const handleEditMessage = useCallback(async (messageId, newContent) => {
         if (!selectedChat) return
 
         try {
             const response = await api.put(`/api/message/${messageId}/update`, { content: newContent })
-
-            setCurrentMessages(prev =>
-                prev.map(m => m.id === messageId ? response.data : m)
-            );
+           
+            messagesDispatch({ 
+                type: 'UPDATE', 
+                id: messageId, 
+                payload: response.data 
+            })
 
             const isLatestMessage = currentMessages.length > 0 && currentMessages[currentMessages.length - 1].id === messageId;
 
@@ -100,7 +99,7 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }
-    }, [selectedChat, updateChat, currentMessages, setCurrentMessages])
+    }, [selectedChat, updateChat, currentMessages, messagesDispatch])
 
     const handleClick = () => {
         onChatTabChange(selectedChat?.is_group ? 'chat' : 'user')
@@ -173,3 +172,5 @@ export default function ChatWindow({ onOpenChatSidebar, onChatTabChange, onClose
         </div>
     )
 }
+
+export default memo(ChatWindow)

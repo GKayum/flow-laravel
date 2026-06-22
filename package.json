@@ -9,7 +9,7 @@
     "devDependencies": {
         "@laravel/echo-react": "^2.3.3",
         "@tailwindcss/vite": "^4.2.2",
-        "axios": "^1.14.0",
+        "axios": "^1.18.0",
         "concurrently": "^9.2.1",
         "laravel-echo": "^2.3.4",
         "laravel-vite-plugin": "^3.0.1",

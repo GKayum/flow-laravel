@@ -32,6 +32,12 @@ export function useVoiceRecorder(maxDuration = 300) {
         chunksRef.current = []
     }, [])
 
+    const stopRecording = useCallback(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop()
+        }
+    }, [])
+
     const startRecording = useCallback(async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -78,13 +84,7 @@ export function useVoiceRecorder(maxDuration = 300) {
         } catch (error) {
             console.error('Ошибка доступа к микрофону:', error)
         }
-    }, [maxDuration, clear])
-
-    const stopRecording = useCallback(() => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-            mediaRecorderRef.current.stop()
-        }
-    }, [clear])
+    }, [maxDuration, clear, stopRecording])
 
     const resetRecording = useCallback(() => {
         clear()

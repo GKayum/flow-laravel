@@ -1,6 +1,6 @@
 import styles from "./EditChatTab.module.scss"
 import { Field } from "../../../../components/UI/Field/Field"
-import { useEffect, useState } from "react"
+import { useEffect, useReducer, useState } from "react"
 import { api, handlerApiError } from "../../../../services/api"
 import { Check } from "lucide-react"
 import Alert from "../../../../components/UI/Alert/Alert"
@@ -10,6 +10,31 @@ import { useChat } from "../../../../contexts/ChatContext"
 import GroupAvatarCropper from "../../../../components/UI/GroupAvatarCropper/GroupAvatarCropper"
 import { CircleCheck } from "lucide-react"
 import { Trash } from "lucide-react"
+import { Loader } from "../../../../components/UI/Loader/Loader"
+
+const initialStatus = {
+    message: '',
+    error: '',
+    validationErrors: {},
+    submitting: false,
+}
+
+function statusReducer(state, action) {
+    switch (action.type) {
+        case 'START':
+            return { ...initialStatus, submitting: true }
+        case 'SUCCESS':
+            return { ...state, submitting: false, message: action.message }
+        case 'ERROR':
+            return { ...state, submitting: false, error: action.error || '', validationErrors: action.validationErrors || {} }
+        case 'CLEAR_FIELD':
+            return { ...state, [action.field]: '' }
+        case 'CLEAR':
+            return { ...initialStatus }
+        default:
+            return state
+    }
+}
 
 export default function EditChatTab({ onClose }) {
     const { selectedChat, updateChat, setChats } = useChat()
@@ -17,11 +42,8 @@ export default function EditChatTab({ onClose }) {
         avatar: '',
         name: '',
     })
-    const [message, setMessage] = useState('')
-    const [error, setError] = useState('')
-    const [validationErrors, setValidationErrors] = useState({})
-    const [submitting, setSubmitting] = useState(false)
-    const [avatarLoading, setAvatarLoading] = useState(false)
+    const [statusState, dispatchStatus] = useReducer(statusReducer, initialStatus)
+    const { message, error, validationErrors, submitting } = statusState
 
     useEffect(() => {
         if (!selectedChat) return
@@ -32,12 +54,17 @@ export default function EditChatTab({ onClose }) {
         })
     }, [selectedChat])
 
+    const handleApiCatch = (error) => {
+        handlerApiError(error, { 
+            setValidationErrors: (errs) => dispatchStatus({ type: 'ERROR', validationErrors: errs }),
+            setError: (err) => dispatchStatus({ type: 'ERROR', error: err })
+        })
+        setTimeout(() => dispatchStatus({ type: 'CLEAR_FIELD', field: 'error' }), 2000)
+    }
+
     const handleChangeAvatar = async (avatar) => {
         if (!avatar) return
-        setError('')
-        setValidationErrors({})
-
-        setAvatarLoading(true)
+        dispatchStatus({ type: 'START' })
 
         try {
             const data = new FormData()
@@ -49,21 +76,18 @@ export default function EditChatTab({ onClose }) {
             })
 
             updateChat(response.data.chat)
+
+            dispatchStatus({ type: 'SUCCESS', message: response.data.message })
+            setTimeout(() => dispatchStatus({ type: 'CLEAR_FIELD', field: 'message' }), 2000)
         } catch (error) {
-            handlerApiError(error, { setValidationErrors, setError })
-            setTimeout(() => setError(''), 2000);
-        } finally {
-            setAvatarLoading(false)
+            handleApiCatch(error)
         }
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        setError('')
-        setMessage('')
-        setValidationErrors({})
-
-        setSubmitting(true)
+        if (formData.name === selectedChat.name) return
+        dispatchStatus({ type: 'START' })
 
         try {
             await api.get('/sanctum/csrf-cookie')
@@ -71,17 +95,16 @@ export default function EditChatTab({ onClose }) {
 
             updateChat(response.data.chat)
 
-            setMessage(response.data.message)
-            setTimeout(() => setMessage(''), 2000);
+            dispatchStatus({ type: 'SUCCESS', message: response.data.message })
+            setTimeout(() => dispatchStatus({ type: 'CLEAR_FIELD', field: 'message' }), 2000)
         } catch (error) {
-            handlerApiError(error, { setValidationErrors, setError })
-            setTimeout(() => setError(''), 2000);
-        } finally {
-            setSubmitting(false)
+            handleApiCatch(error)
         }
     }
 
     const handleDeleteChat = async () => {
+        dispatchStatus({ type: 'START' })
+
         try {
             await api.delete(`api/chat/${selectedChat.id}/delete`)
 
@@ -94,7 +117,7 @@ export default function EditChatTab({ onClose }) {
         }
     }
 
-    if (!selectedChat) return
+    if (!selectedChat) return null
 
     return (
         <>
@@ -112,7 +135,7 @@ export default function EditChatTab({ onClose }) {
                 <form className={styles.body__block} onSubmit={handleSubmit}>
                     <Field
                         id="name"
-                        placeholder='Название чата' 
+                        placeholder='Название чата'
                         type='text'
                         onChange={e => setFormData({...formData, name: e.target.value})}
                         value={formData.name}
@@ -123,7 +146,11 @@ export default function EditChatTab({ onClose }) {
                         className={`${styles.submitButton} ${formData.name ? styles.visible : ''}`}
                         disabled={submitting}
                     >
-                        <CircleCheck />
+                        {submitting ? (
+                            <Loader />
+                        ) : (
+                            <CircleCheck />
+                        )}
                     </button>
                 </form>
                 <section className={styles.body__block}>

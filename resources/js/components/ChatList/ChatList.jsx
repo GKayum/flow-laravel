@@ -24,7 +24,7 @@ export default function ChatList({ onOpenSidebar, onTabChange, onCloseChatSideba
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }
-    }, [setChats])
+    }, [setChats, onCloseChatSidebar])
 
     const handleExitChat = useCallback(async (chatId) => {
         try {
@@ -38,7 +38,7 @@ export default function ChatList({ onOpenSidebar, onTabChange, onCloseChatSideba
         } catch (error) {
             handlerApiError(error, { setValidationErrors: () => {}, setError: () => {} })
         }
-    }, [setChats])
+    }, [setChats, onCloseChatSidebar])
 
     return (
         <main className={styles.main}>
