@@ -20,25 +20,11 @@ export default function ChatSidebar({ open, onClose, chatActiveTab, onChatTabCha
         }
     }
 
-    // useEffect(() => {
-    //     if (!open || !selectedChat) return
-
-    //     const isGroup = selectedChat.is_group
-    //     const allowedTabs = isGroup ? ['chat', 'editChat', 'addMember'] : ['user']
-    //     const defaultTab = isGroup ? 'chat' : 'user'
-
-    //     if (!allowedTabs.includes(chatActiveTab)) {
-    //         onChatTabChange(defaultTab)
-    //     }
-    // }, [open, selectedChat, chatActiveTab, onChatTabChange])
-
-
     return (
         <div 
             className={styles.main}
             style={{
-                width: open ? '420px' : '0'
-                // right: open ? '0' : '-100%'
+                marginRight: open ? 0 : -420
             }}
         >
             {(() => {switch (activeTabToRender) {

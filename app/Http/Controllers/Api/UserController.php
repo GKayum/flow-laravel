@@ -25,7 +25,7 @@ class UserController extends Controller
             'name' => 'sometimes|required|string|max:64',
             'email' => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
             'password' => 'sometimes|required|min:5|confirmed',
-            'avatar' => 'nullable|image|mimetypes:image/jpg,image/jpeg,image/png,image/webp', // TODO <<GIF>>
+            'avatar' => 'nullable|image|mimetypes:image/jpg,image/jpeg,image/png,image/webp,image/gif', // TODO <<GIF>>
             'date_of_birth' => 'nullable|date',
         ]);
 

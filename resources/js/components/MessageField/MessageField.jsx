@@ -71,6 +71,9 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
         startRecording, stopRecording, resetRecording,
     } = useVoiceRecorder(300)
 
+    const durationRef = useRef(duration)
+    durationRef.current = duration
+
     useEffect(() => {
         if (!audioBlob) return
 
@@ -81,7 +84,7 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
 
         setIsSendingVoice(true)
 
-        uploadAttachment(file, null, { duration })
+        uploadAttachment(file, null, { duration: durationRef.current })
             .then(res => {
                 return onSendMessage({
                     content: null,
@@ -140,7 +143,7 @@ export default function MessageField({ onSendMessage, isSubmitting = false }) {
     const removeAttachment = useCallback((localId) => {
         setAttachments(prev => {
             const att = prev.find(a => a.localId === localId)
-            if (!att) return
+            if (!att) return prev
 
             if (att.id && !att.uploading) {
                 deleteAttachment(att.id).catch(console.error)

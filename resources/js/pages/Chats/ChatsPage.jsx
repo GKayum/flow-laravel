@@ -8,7 +8,6 @@ import { ChatProvider } from '../../contexts/ChatContext'
 import ChatSidebar from '../../layouts/ChatSidebar/ChatSidebar'
 import { useToast } from '../../hooks/useToast'
 import Toast from '../../components/UI/Toast/Toast'
-import { useCallback } from 'react'
 
 export default function ChatsPage() {
     const {
@@ -23,10 +22,6 @@ export default function ChatsPage() {
 
     const { toast, showToast, hideToast } = useToast()
 
-    const handleOpenChatSidebar = useCallback(() => openSidebar("chat"), [openSidebar])
-    const handleChatTabChange = useCallback((tab) => onTabChange("chat", tab), [onTabChange])
-    const handleCloseChat = useCallback(() => closeSidebar("chat"), [closeSidebar])
-
     return (
         <ChatProvider>
         <main className={styles.main}>
@@ -39,7 +34,6 @@ export default function ChatsPage() {
                     onOpenSidebar={() => openSidebar("main")}
                     onTabChange={(tab) => onTabChange("main", tab)}
                     onCloseChatSidebar={() => closeSidebar("chat")}
-                    // onCloseChatSidebar={handleCloseChat}
                 />
 
                 <Sidebar 
@@ -52,12 +46,9 @@ export default function ChatsPage() {
             </aside>
             <div className={styles.body}>
                 <ChatWindow 
-                    // onOpenChatSidebar={() => openSidebar("chat")}
-                    // onChatTabChange={(tab) => onTabChange("chat", tab)}
-                    // onClose={() => closeSidebar("chat")}
-                    onOpenChatSidebar={handleOpenChatSidebar}
-                    onChatTabChange={handleChatTabChange}
-                    onClose={handleCloseChat}
+                    onOpenChatSidebar={() => openSidebar("chat")}
+                    onChatTabChange={(tab) => onTabChange("chat", tab)}
+                    onClose={() => closeSidebar("chat")}
                 />
                 <ChatSidebar
                     open={chatSidebarOpen}

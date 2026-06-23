@@ -3,7 +3,7 @@ import styles from "./EditProfileTab.module.scss"
 import { Pen } from "lucide-react"
 import { Calendar1 } from "lucide-react"
 import { Field } from "../../../components/UI/Field/Field"
-import { useState } from "react"
+import { useReducer, useState } from "react"
 import { UserRound } from "lucide-react"
 import { SquareAsterisk } from "lucide-react"
 import { api, handlerApiError } from "../../../services/api"
@@ -14,6 +14,35 @@ import { X } from "lucide-react"
 import TabHeader from "../../../components/TabHeader/TabHeader"
 import UserAvatarCropper from "../../../components/UI/UserAvatarCropper/UserAvatarCropper"
 import { useChat } from "../../../contexts/ChatContext"
+
+const initialStatus = {
+    message: '',
+    error: '',
+    validationErrors: {},
+    submitting: false,
+    avatarLoading: false,
+}
+
+function statusReducer(state, action) {
+    switch (action.type) {
+        case 'START_SUBMIT':
+            return { ...initialStatus, submitting: true }
+        case 'SUCCESS_SUBMIT':
+            return { ...state, submitting: false, message: action.message }
+        case 'ERROR_SUBMIT':
+            return { ...state, submitting: false, error: action.error || '', validationErrors: action.validationErrors || {} }
+        case 'START_AVATAR':
+            return { ...initialStatus, avatarLoading: true }
+        case 'SUCCESS_AVATAR':
+            return { ...state, avatarLoading: false }
+        case 'ERROR_AVATAR':
+            return { ...state, avatarLoading: false, error: action.error || '', validationErrors: action.validationErrors || {} }
+        case 'CLEAR_FIELD':
+            return { ...state, [action.field]: '' }
+        default:
+            return state
+    }
+}
 
 export default function EditProfileTab({ onClose }) {
     const { user, setUser } = useAuth()
@@ -26,20 +55,11 @@ export default function EditProfileTab({ onClose }) {
         password: '',
         passwordConfirmation: '',
     })
-    const [formStatus, setFormStatus] = useState({
-        message: '',
-        error: '',
-        validationErrors: {},
-        submitting: false,
-        avatarLoading: false,
-    })
+    const [status, dispatchStatus] = useReducer(statusReducer, initialStatus)
 
     const handleChangeAvatar = async (avatar) => {
         if (!avatar) return
-        setFormStatus(prev => ({ ...prev, error: '' }))
-        setFormStatus(prev => ({ ...prev, validationErrors: {} }))
-
-        setFormStatus(prev => ({ ...prev, avatarLoading: true }))
+        dispatchStatus({ type: 'START_AVATAR' })
 
         try {
             const data = new FormData()
@@ -52,27 +72,22 @@ export default function EditProfileTab({ onClose }) {
             setUser(response.data.user)
             updateMemberInChats(response.data.user)
             updateMemberInMessages(response.data.user)
+
+            dispatchStatus({ type: 'SUCCESS_AVATAR' })
         } catch (error) {
-            handlerApiError(error, {
-                setValidationErrors: (error) => setFormStatus(prev => ({ ...prev, validationErrors: error})),
-                setError: (error) => setFormStatus(prev => ({ ...prev, error: error}))
+            handlerApiError(error, { 
+                setValidationErrors: (errs) => dispatchStatus({ type: 'ERROR_AVATAR', validationErrors: errs }),
+                setError: (err) => dispatchStatus({ type: 'ERROR_AVATAR', error: err })
             })
-        } finally {
-            setFormStatus(prev => ({ ...prev, avatarLoading: false }))
         }
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        setFormStatus(prev => ({ ...prev, error: '' }))
-        setFormStatus(prev => ({ ...prev, message: '' }))
-        setFormStatus(prev => ({ ...prev, validationErrors: {} }))
-
-        setFormStatus(prev => ({ ...prev, submitting: true }))
+        dispatchStatus({ type: 'START_SUBMIT' })
 
         try {
             const data = new FormData()
-
             data.append('name', formData.name);
             data.append('date_of_birth', formData.dateOfBirth);
             data.append('email', formData.email);
@@ -83,21 +98,20 @@ export default function EditProfileTab({ onClose }) {
 
             await api.get('/sanctum/csrf-cookie')
             const response = await api.post('/api/user/update', data)
+
             setUser(response.data.user)
             updateMemberInChats(response.data.user)
             updateMemberInMessages(response.data.user)
-            setFormStatus(prev => ({ ...prev, message: response.data.message })) 
+
+            dispatchStatus({ type: 'SUCCESS_SUBMIT', message: response.data.message })
             setTimeout(() => {
-                setFormStatus(prev => ({ ...prev, message: ''}))        
+                dispatchStatus({ type: 'CLEAR_FIELD', field: 'message' })       
             }, 2000);
         } catch (error) {
-            handlerApiError(error, {
-                setValidationErrors: (error) => setFormStatus(prev => ({ ...prev, validationErrors: error})),
-                setError: (error) => setFormStatus(prev => ({ ...prev, error: error}))
+            handlerApiError(error, { 
+                setValidationErrors: (errs) => dispatchStatus({ type: 'ERROR_SUBMIT', validationErrors: errs }),
+                setError: (err) => dispatchStatus({ type: 'ERROR_SUBMIT', error: err })
             })
-            console.log(error);
-        } finally {
-            setFormStatus(prev => ({ ...prev, submitting: false }))
         }
     }
 
@@ -108,7 +122,7 @@ export default function EditProfileTab({ onClose }) {
             <div className={styles.avatarContainer}>
                 <UserAvatarCropper 
                     onChangeAvatar={blob => handleChangeAvatar(blob)} 
-                    avatarLoading={formStatus.avatarLoading}
+                    avatarLoading={status.avatarLoading}
                 />
                 <span className={styles.avatarContainer__name}>{user.name}</span>
             </div>
@@ -122,7 +136,7 @@ export default function EditProfileTab({ onClose }) {
                             type='text'
                             onChange={e => setFormData({...formData, name: e.target.value})}
                             value={formData.name}
-                            style={formStatus.validationErrors.name ? { borderColor: '#FF0001' } : {}}
+                            style={status.validationErrors.name ? { borderColor: '#FF0001' } : {}}
                         />
                     </div>
                     <div className={styles.item}>
@@ -133,7 +147,7 @@ export default function EditProfileTab({ onClose }) {
                             type='date'
                             onChange={e => setFormData({...formData, dateOfBirth: e.target.value})}
                             value={formData.dateOfBirth}
-                            style={formStatus.validationErrors.dateOfBirth ? { borderColor: '#FF0001' } : {}}
+                            style={status.validationErrors.dateOfBirth ? { borderColor: '#FF0001' } : {}}
                         />
                     </div>
                     <div className={styles.item}>
@@ -144,7 +158,7 @@ export default function EditProfileTab({ onClose }) {
                             type='email'
                             onChange={e => setFormData({...formData, email: e.target.value})}
                             value={formData.email}
-                            style={formStatus.validationErrors.email ? { borderColor: '#FF0001' } : {}}
+                            style={status.validationErrors.email ? { borderColor: '#FF0001' } : {}}
                         />
                     </div>
                     <div className={styles.item}>
@@ -155,7 +169,7 @@ export default function EditProfileTab({ onClose }) {
                             type='password'
                             onChange={e => setFormData({...formData, password: e.target.value})}
                             value={formData.password}
-                            style={formStatus.validationErrors.password ? { borderColor: '#FF0001' } : {}}
+                            style={status.validationErrors.password ? { borderColor: '#FF0001' } : {}}
                         />
                     </div>
                     <div className={styles.item}>
@@ -166,7 +180,7 @@ export default function EditProfileTab({ onClose }) {
                             type='password'
                             onChange={e => setFormData({...formData, passwordConfirmation: e.target.value})}
                             value={formData.passwordConfirmation}
-                            style={formStatus.validationErrors.passwordConfirmation ? { borderColor: '#FF0001' } : {}}
+                            style={status.validationErrors.passwordConfirmation ? { borderColor: '#FF0001' } : {}}
                         />
                     </div>
                     <button 
@@ -175,14 +189,14 @@ export default function EditProfileTab({ onClose }) {
                     >
                         <Pen className={styles.buttonIcon} />
                         <div className={styles.item__body}>
-                            <span className={styles.content}>{formStatus.submitting ? 'Сохранение...' : 'Сохранить изменения'}</span>
+                            <span className={styles.content}>{status.submitting ? 'Сохранение...' : 'Сохранить изменения'}</span>
                             <label className={styles.label}>Действие</label>
                         </div>
                     </button>
                 </form>
                 <section className={styles.body__block}>
-                    {formStatus.message && <Alert icon={Check} content={formStatus.message} label={'Оповещение'} type={'success'} />}
-                    {formStatus.error && <Alert icon={X} content={formStatus.error} label={'Оповещение'} type={'danger'} />}
+                    {status.message && <Alert icon={Check} content={status.message} label={'Оповещение'} type={'success'} />}
+                    {status.error && <Alert icon={X} content={status.error} label={'Оповещение'} type={'danger'} />}
                 </section>
             </div>
         </div>
